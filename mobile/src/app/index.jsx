@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Image, } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Mail, Clock, Plus, LayoutGrid, Calendar, User, FileText, Check, } from 'lucide-react-native';
+import {
+  Bell,
+  Mail,
+  Clock,
+  Plus,
+  LayoutGrid,
+  Calendar,
+  User,
+  FileText,
+  Check,
+} from 'lucide-react-native';
 
 const INITIAL_TASKS = [
   {
     id: '1',
     course: 'CS101',
-    courseBg: 'bg-[#E2E4FE]',
-    courseTextColor: 'text-[#3B49DF]',
-    borderAccent: 'border-l-[#3B49DF]',
+    courseBg: 'bg-secondary/15',
+    courseTextColor: 'text-secondary',
+    borderAccent: 'border-l-secondary',
     sourceType: 'email',
     sourceLabel: 'Auto Ingested',
     title: 'Submit Logic Quiz',
@@ -20,9 +30,9 @@ const INITIAL_TASKS = [
   {
     id: '2',
     course: 'ECON202',
-    courseBg: 'bg-[#E2E4FE]',
-    courseTextColor: 'text-[#3B49DF]',
-    borderAccent: 'border-l-[#FF8A65]',
+    courseBg: 'bg-secondary/15',
+    courseTextColor: 'text-secondary',
+    borderAccent: 'border-l-tertiary',
     sourceType: 'manual',
     sourceLabel: 'User Created',
     title: 'Review Chapter 4 Summary',
@@ -32,9 +42,9 @@ const INITIAL_TASKS = [
   {
     id: '3',
     course: 'MATH301',
-    courseBg: 'bg-[#E2E4FE]',
-    courseTextColor: 'text-[#3B49DF]',
-    borderAccent: 'border-l-[#3B49DF]',
+    courseBg: 'bg-secondary/15',
+    courseTextColor: 'text-secondary',
+    borderAccent: 'border-l-secondary',
     sourceType: 'email',
     sourceLabel: 'Auto Ingested',
     title: 'Calculus Problem Set',
@@ -66,7 +76,14 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#F8FAFC]">
       <View className="flex-1 relative">
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 120,}}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: 120,
+          }}
+        >
           {/* Header */}
           <View className="flex-row items-center justify-between mb-6">
             <View className="flex-row items-center gap-3">
@@ -77,19 +94,19 @@ export default function DashboardScreen() {
                 className="w-12 h-12 rounded-full"
               />
               <View>
-                <Text className="text-xl font-bold text-[#0A0E5C]">
+                <Text className="text-xl font-bold text-primary">
                   Hello, Alex
                 </Text>
                 <View className="flex-row items-center gap-1.5 mt-0.5">
                   <View className="w-2.5 h-2.5 rounded-full bg-[#4ADE80]" />
-                  <Text className="text-xs text-gray-500 font-medium">
+                  <Text className="text-xs text-neutral font-medium">
                     Google Calendar Synced
                   </Text>
                 </View>
               </View>
             </View>
             <TouchableOpacity className="p-2">
-              <Bell size={24} color="#0A0E5C" />
+              <Bell size={24} color="#1A237E" />
             </TouchableOpacity>
           </View>
 
@@ -102,12 +119,12 @@ export default function DashboardScreen() {
                   key={filter}
                   onPress={() => setActiveFilter(filter)}
                   className={`px-5 py-2.5 rounded-full ${
-                    isActive ? 'bg-[#3B49DF]' : 'bg-[#EFEFF4]'
+                    isActive ? 'bg-secondary' : 'bg-[#EFEFF4]'
                   }`}
                 >
                   <Text
                     className={`font-semibold text-sm capitalize ${
-                      isActive ? 'text-white' : 'text-[#475569]'
+                      isActive ? 'text-white' : 'text-neutral'
                     }`}
                   >
                     {filter === 'all' ? 'All Tasks' : filter}
@@ -118,7 +135,7 @@ export default function DashboardScreen() {
           </View>
 
           {/* Section Title */}
-          <Text className="text-2xl font-bold text-[#0A0E5C] mb-4">
+          <Text className="text-2xl font-bold text-primary mb-4">
             Today's Focus
           </Text>
 
@@ -139,7 +156,7 @@ export default function DashboardScreen() {
                   }}
                   className={`w-6 h-6 rounded-lg border border-gray-300 items-center justify-center ${
                     task.completed
-                      ? 'bg-[#3B49DF] border-[#3B49DF]'
+                      ? 'bg-secondary border-secondary'
                       : 'bg-white'
                   }`}
                 >
@@ -158,25 +175,25 @@ export default function DashboardScreen() {
                     </View>
                     <View className="flex-row items-center gap-1">
                       {task.sourceType === 'email' ? (
-                        <Mail size={13} color="#64748B" />
+                        <Mail size={13} color="#77767D" />
                       ) : (
-                        <FileText size={13} color="#64748B" />
+                        <FileText size={13} color="#77767D" />
                       )}
-                      <Text className="text-xs text-gray-500 font-medium">
+                      <Text className="text-xs text-neutral font-medium">
                         {task.sourceLabel}
                       </Text>
                     </View>
                   </View>
                   <Text
-                    className={`text-lg font-bold text-[#0A0E5C] mb-1 ${
-                      task.completed ? 'line-through text-gray-400' : ''
+                    className={`text-lg font-bold text-primary mb-1 ${
+                      task.completed ? 'line-through text-neutral' : ''
                     }`}
                   >
                     {task.title}
                   </Text>
                   <View className="flex-row items-center gap-1">
-                    <Clock size={14} color="#64748B" />
-                    <Text className="text-xs text-gray-500 font-medium">
+                    <Clock size={14} color="#77767D" />
+                    <Text className="text-xs text-neutral font-medium">
                       Due {task.dueTime}
                     </Text>
                   </View>
@@ -188,56 +205,59 @@ export default function DashboardScreen() {
 
         {/* Floating Action Button (FAB) */}
         <TouchableOpacity
-          onPress={() => router.push('/edit-task')}
-          className="absolute bottom-24 right-5 w-14 h-14 bg-[#0A0E5C] rounded-2xl items-center justify-center shadow-lg z-20"
+          onPress={() => router.push('/create-task')}
+          className="absolute bottom-24 right-5 w-14 h-14 bg-primary rounded-2xl items-center justify-center shadow-lg z-20"
         >
           <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
         </TouchableOpacity>
 
         {/* Bottom Navigation */}
         <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-3 px-6 flex-row justify-between items-center z-10">
+          {/* Dashboard */}
           <TouchableOpacity
             onPress={() => setActiveTab('dashboard')}
             className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${
-              activeTab === 'dashboard' ? 'bg-[#818CF8]/30' : ''
+              activeTab === 'dashboard' ? 'bg-secondary/20' : ''
             }`}
           >
             <LayoutGrid
               size={20}
-              color={activeTab === 'dashboard' ? '#3B49DF' : '#64748B'}
+              color={activeTab === 'dashboard' ? '#3F51B5' : '#77767D'}
             />
             {activeTab === 'dashboard' && (
-              <Text className="text-[#3B49DF] font-bold text-sm">Dashboard</Text>
+              <Text className="text-secondary font-bold text-sm">Dashboard</Text>
             )}
           </TouchableOpacity>
 
+            {/*  Calendar Button */}
           <TouchableOpacity
-            onPress={() => setActiveTab('calendar')}
+            onPress={() => {setActiveTab('calendar'); router.push('/calendar');}}
             className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${
-              activeTab === 'calendar' ? 'bg-[#818CF8]/30' : ''
+              activeTab === 'calendar' ? 'bg-secondary/20' : ''
             }`}
           >
             <Calendar
               size={20}
-              color={activeTab === 'calendar' ? '#3B49DF' : '#64748B'}
+              color={activeTab === 'calendar' ? '#3F51B5' : '#77767D'}
             />
             {activeTab === 'calendar' && (
-              <Text className="text-[#3B49DF] font-bold text-sm">Calendar</Text>
+              <Text className="text-secondary font-bold text-sm">Calendar</Text>
             )}
           </TouchableOpacity>
 
+            {/* Profile Button */}
           <TouchableOpacity
-            onPress={() => setActiveTab('profile')}
+            onPress={() => {setActiveTab('profile'); router.push('/profile');}}
             className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${
-              activeTab === 'profile' ? 'bg-[#818CF8]/30' : ''
+              activeTab === 'profile' ? 'bg-secondary/20' : ''
             }`}
           >
             <User
               size={20}
-              color={activeTab === 'profile' ? '#3B49DF' : '#64748B'}
+              color={activeTab === 'profile' ? '#3F51B5' : '#77767D'}
             />
             {activeTab === 'profile' && (
-              <Text className="text-[#3B49DF] font-bold text-sm">Profile</Text>
+              <Text className="text-secondary font-bold text-sm">Profile</Text>
             )}
           </TouchableOpacity>
         </View>
