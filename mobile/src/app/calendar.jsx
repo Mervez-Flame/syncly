@@ -1,24 +1,8 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    Image,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image,} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import {
-    Bell,
-    ChevronLeft,
-    ChevronRight,
-    Plus,
-    RefreshCw,
-    HardDrive,
-    LayoutGrid,
-    Calendar as CalendarIcon,
-    User,
-} from 'lucide-react-native';
+import { Bell, ChevronLeft, ChevronRight, Plus, RefreshCw, HardDrive, LayoutGrid, Calendar as CalendarIcon, User,} from 'lucide-react-native';
 
 // Sample Day Selector Data
 const DAYS_IN_WEEK = [
@@ -320,7 +304,7 @@ export default function CalendarScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        onPress={() => setActiveTab('profile')}
+                        onPress={() => {setActiveTab('profile'); router.push('profile')}}
                         className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${activeTab === 'profile' ? 'bg-secondary/20' : ''
                             }`}
                     >

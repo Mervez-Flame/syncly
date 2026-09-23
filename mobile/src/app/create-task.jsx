@@ -1,29 +1,16 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    ScrollView,
-    Switch,
-    Platform,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, Platform, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {
-    ArrowLeft,
-    Calendar,
-    Clock,
-    RefreshCw,
-    CheckCircle2,
-    Plus,
-} from 'lucide-react-native';
+import { ArrowLeft, Calendar, RefreshCw, CheckCircle2, Plus, } from 'lucide-react-native';
+import { useTasks } from '../context/TaskContext';
 
-const CATEGORIES = ['History 201', 'Organic Chem', 'CS 401', 'Misc'];
+const CATEGORIES = ['History 201', 'Organic Chem', 'CSC 401', 'Misc'];
 
 export default function CreateTaskScreen() {
     const router = useRouter();
+    const { addTask } = useTasks();
 
     const [taskName, setTaskName] = useState('');
     const [description, setDescription] = useState('');
@@ -38,7 +25,6 @@ export default function CreateTaskScreen() {
 
     // Handle Date Change
     const handleDateChange = (event, date) => {
-        // Hide picker on Android after selection
         if (Platform.OS === 'android') {
             setShowDatePicker(false);
         }
@@ -46,7 +32,6 @@ export default function CreateTaskScreen() {
         if (date) {
             setSelectedDate(date);
 
-            // Format date to DD/MM/YYYY
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const year = date.getFullYear();
@@ -55,8 +40,24 @@ export default function CreateTaskScreen() {
         }
     };
 
+    // 👈 3. Updated Task Creation Handler
     const handleCreateTask = () => {
-        // Save task logic here
+        if (!taskName.trim()) return;
+
+        addTask({
+            title: taskName.trim(),
+            course: selectedCategory,
+            dueTime: dueDateTime || '11:59 PM',
+            dueDate: dueDateTime || 'Today',
+            description: description.trim(),
+            syncCalendar: syncCalendar,
+            sourceType: 'manual',
+            sourceLabel: 'User Created',
+            borderAccent: 'border-l-secondary',
+            courseBg: 'bg-secondary/15',
+            courseTextColor: 'text-secondary',
+        });
+
         router.back();
     };
 
@@ -85,7 +86,7 @@ export default function CreateTaskScreen() {
                     <TextInput
                         value={taskName}
                         onChangeText={setTaskName}
-                        placeholder="e.g. Write Introduction Chapter"
+                        placeholder="Task Name."
                         placeholderTextColor="#77767D"
                         className="border border-gray-200 rounded-xl p-3.5 text-base text-primary mb-4 bg-white"
                     />
@@ -115,10 +116,9 @@ export default function CreateTaskScreen() {
                         className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between mb-4"
                     >
                         <Text
-                            className={`text-base ${dueDateTime ? 'text-primary font-medium' : 'text-neutral'
-                                }`}
+                            className={`text-base ${dueDateTime ? 'text-primary font-medium' : 'text-neutral'}`}
                         >
-                            {dueDateTime || 'dd/mm/yyyy  --:--'}
+                            {dueDateTime || 'dd/mm/yyyy --:--'}
                         </Text>
 
                         <View className="flex-row items-center gap-2">
@@ -132,8 +132,8 @@ export default function CreateTaskScreen() {
                             value={selectedDate}
                             mode="date"
                             display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                            minimumDate={new Date()} // 👈 Restricts selection from TODAY forward
-                            onValueChange={handleDateChange}
+                            minimumDate={new Date()}
+                            onValueChange={handleDateChange} // 👈 4. Updated to onChange
                         />
                     )}
 
@@ -142,7 +142,7 @@ export default function CreateTaskScreen() {
                             <RefreshCw size={20} color="#3F51B5" />
                             <View>
                                 <Text className="text-sm font-bold text-primary">
-                                    Sync to Google Calendar 
+                                    Sync to Google Calendar
                                 </Text>
                                 <Text className="text-xs text-neutral">
                                     Block time automatically
@@ -171,16 +171,19 @@ export default function CreateTaskScreen() {
                                     key={cat}
                                     onPress={() => setSelectedCategory(cat)}
                                     activeOpacity={0.8}
-                                    className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full ${isSelected ? 'bg-secondary' : 'bg-[#EFEFF4]'
-                                        }`}
+                                    className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full ${
+                                        isSelected ? 'bg-secondary' : 'bg-[#EFEFF4]'
+                                    }`}
                                 >
                                     <View
-                                        className={`w-2 h-2 rounded-full ${isSelected ? 'bg-amber-400' : 'bg-secondary'
-                                            }`}
+                                        className={`w-2 h-2 rounded-full ${
+                                            isSelected ? 'bg-amber-400' : 'bg-secondary'
+                                        }`}
                                     />
                                     <Text
-                                        className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-primary'
-                                            }`}
+                                        className={`font-semibold text-sm ${
+                                            isSelected ? 'text-white' : 'text-primary'
+                                        }`}
                                     >
                                         {cat}
                                     </Text>
@@ -198,7 +201,10 @@ export default function CreateTaskScreen() {
                 <TouchableOpacity
                     onPress={handleCreateTask}
                     activeOpacity={0.9}
-                    className="bg-primary py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-md"
+                    className={`py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-md ${
+                        taskName.trim() ? 'bg-primary' : 'bg-gray-300'
+                    }`}
+                    disabled={!taskName.trim()}
                 >
                     <CheckCircle2 size={22} color="#FFFFFF" />
                     <Text className="text-white text-lg font-bold">Create Task</Text>

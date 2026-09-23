@@ -1,11 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 content: [
-    "./App.{js,jsx,ts,tsx}",
-    "./app/**/*.{js,jsx,ts,tsx}",        // If using Expo Router
-    "./screens/**/*.{js,jsx,ts,tsx}",    // If you have a screens folder
-    "./components/**/*.{js,jsx,ts,tsx}", // If you have a components folder
-    "./src/**/*.{js,jsx,ts,tsx}",        // If you put code in src/
+    "./app/**/*.{js,jsx,ts,tsx}",        
+    "./screens/**/*.{js,jsx,ts,tsx}",    
+    "./components/**/*.{js,jsx,ts,tsx}", 
+    "./src/**/*.{js,jsx,ts,tsx}",        
+    "./context/**/*.{js,jsx,ts,tsx}",    
 ],
   presets: [require("nativewind/preset")],
   theme: {
