@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { View, Text, Image, TouchableOpacity, } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowRight, GraduationCap, Infinity as InfinityIcon, CalendarCheck, Sparkles, CheckSquare,} from 'lucide-react-native';
+import { ArrowRight, Infinity as InfinityIcon, CalendarCheck, Sparkles, CheckSquare } from 'lucide-react-native';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import { useAuth } from '../context/AuthContext';
+
+// Complete auth session redirect handling for mobile web browser overlays
+WebBrowser.maybeCompleteAuthSession();
 
 const SLIDES = [
     {
@@ -26,16 +32,82 @@ export default function OnboardingScreen() {
     const router = useRouter();
     const { login } = useAuth();
     const [currentStep, setCurrentStep] = useState(0); // 0: Step 1, 1: Step 2, 2: Step 3 (Auth)
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+    // Make Expo Auth Proxy URL (https://auth.expo.io/@username/slug)
+    const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'syncly',
+    });
+
+    // Add a log to confirm the exact URI in your terminal
+    console.log("Generated Redirect URI:", redirectUri);
+
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        androidClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+        iosClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+        webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+        redirectUri: redirectUri,
+        scopes: [
+            'openid',
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/gmail.readonly',
+            'https://www.googleapis.com/auth/calendar.events',
+        ],
+        responseType: 'code',
+        extraParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+        },
+    });
+
+    // Handle Google OAuth response
+    useEffect(() => {
+        console.log("🟢 [2. OAUTH RESPONSE EVENT]:", JSON.stringify(response, null, 2));
+        if (response?.type === 'success') {
+            const { code } = response.params;
+            console.log("🟢 [3. AUTH CODE CAPTURED]:", code ? "Code Present" : "Missing Code");
+            handleBackendExchange(code);
+        } else if (response?.type) {
+            console.warn("🔴 [2b. OAUTH NON-SUCCESS TYPE]:", response.type);
+        }
+    }, [response]);
+
+    // Send authorization code to Express server
+    const handleBackendExchange = async (authCode) => {
+        const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/auth/google`;
+        console.log("🟢 [4. SENDING TO BACKEND]:", apiUrl);
+
+        try {
+            setIsLoggingIn(true);
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: authCode }),
+            });
+
+            const data = await res.json();
+            console.log("🟢 [5. BACKEND HTTP STATUS]:", res.status);
+            console.log("🟢 [6. BACKEND PAYLOAD]:", data);
+
+            if (res.ok) {
+                console.log("🟢 [7. AUTH SUCCESSFUL - NAVIGATING]");
+                await login(data.token, data.user);
+                router.replace('/(tabs)/dashboard');
+            } else {
+                console.error("🔴 [5b. BACKEND REJECTED AUTH]:", data.message);
+            }
+        } catch (err) {
+            console.error("🔴 [4b. FETCH NETWORK ERROR]:", err.message);
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
 
     const handleNext = () => {
         if (currentStep < 2) {
             setCurrentStep((prev) => prev + 1);
         }
-    };
-
-    const handleMockLogin = async (email, name) => {
-    await login({ name, email }); // Saves session to AsyncStorage & sets user state
-    router.replace ('dashboard'); // Routes to dashboard
     };
 
     const handleSkip = () => {
@@ -74,7 +146,6 @@ export default function OnboardingScreen() {
                                 />
                             ) : (
                                 <View className="w-full h-full bg-[#F8FAFC] p-6 items-center justify-center relative">
-                                    {/* Mock Card Preview Graphic */}
                                     <View className="w-52 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 absolute top-8 left-4 z-10">
                                         <CalendarCheck size={22} color="#3F51B5" />
                                         <View className="w-28 h-2.5 bg-indigo-100 rounded-full mt-3" />
@@ -105,12 +176,10 @@ export default function OnboardingScreen() {
                         {/* Pagination Indicators */}
                         <View className="flex-row items-center gap-2 mb-2">
                             <View
-                                className={`h-2 rounded-full ${currentStep === 0 ? 'w-8 bg-primary' : 'w-2 bg-gray-300'
-                                    }`}
+                                className={`h-2 rounded-full ${currentStep === 0 ? 'w-8 bg-primary' : 'w-2 bg-gray-300'}`}
                             />
                             <View
-                                className={`h-2 rounded-full ${currentStep === 1 ? 'w-8 bg-primary' : 'w-2 bg-gray-300'
-                                    }`}
+                                className={`h-2 rounded-full ${currentStep === 1 ? 'w-8 bg-primary' : 'w-2 bg-gray-300'}`}
                             />
                             <View className="w-2 h-2 rounded-full bg-gray-300" />
                         </View>
@@ -139,16 +208,27 @@ export default function OnboardingScreen() {
                                 The ultimate task manager for modern students.
                             </Text>
 
-                            {/* Sign in with Google */}
+                            {/* Sign in with Google Button */}
                             <TouchableOpacity
-                                onPress={() => handleMockLogin('a.thompson@gmail.com', 'Alex Thompson')}
+                                onPress={() => {
+                                    console.log("🟢 [0. SIGN-IN BUTTON TAPPED]");
+                                    promptAsync();
+                                }}
+                                disabled={!request || isLoggingIn}
                                 activeOpacity={0.85}
-                                className="w-full border border-gray-200 py-3.5 rounded-2xl flex-row items-center justify-center gap-3 bg-white mb-4"
+                                className={`w-full border border-gray-200 py-3.5 rounded-2xl flex-row items-center justify-center gap-3 bg-white mb-4 ${(!request || isLoggingIn) ? 'opacity-50' : 'opacity-100'
+                                    }`}
                             >
-                                <Sparkles size={18} color="#EA4335" />
-                                <Text className="text-primary font-bold text-base">
-                                    Sign in with Google
-                                </Text>
+                                {isLoggingIn ? (
+                                    <ActivityIndicator color="#EA4335" />
+                                ) : (
+                                    <>
+                                        <Sparkles size={18} color="#EA4335" />
+                                        <Text className="text-primary font-bold text-base">
+                                            Sign in with Google
+                                        </Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>

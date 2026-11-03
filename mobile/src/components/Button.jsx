@@ -1,27 +1,49 @@
-import React from "react";
-import { Pressable, Text } from "react-native";
+// mobile/src/components/Button.jsx
+import React from 'react';
+import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 
-export const Button = ({ title, variant = "primary", className = "", ...props }) => {
-    const variantContainer = {
-        primary: "bg-primary border-transparent",
-        secondary: "bg-surface-light border-transparent",
-        inverted: "bg-surface-dark border-transparent",
-        outlined: "bg-transparent border border-neutral/60",
+export default function Button({
+    title,
+    onPress,
+    variant = 'primary', // 'primary' | 'secondary' | 'inverted' | 'tertiary'
+    icon,
+    isLoading = false,
+    disabled = false,
+    className = '',
+}) {
+    // Map variant to NativeWind utility classes using custom theme tokens
+    const variantStyles = {
+        primary: 'bg-primary border-primary',
+        secondary: 'bg-surface-light border-surface-light',
+        inverted: 'bg-surface-dark border-surface-dark',
+        tertiary: 'bg-tertiary border-tertiary',
     };
 
-    const variantText = {
-        primary: "text-white font-semibold",
-        secondary: "text-primary font-semibold",
-        inverted: "text-[#FFE082] font-semibold",
-        outlined: "text-primary font-semibold",
+    const textStyles = {
+        primary: 'text-white',
+        secondary: 'text-primary',
+        inverted: 'text-white',
+        tertiary: 'text-white',
     };
 
     return (
-        <Pressable
-            className={`px-6 py-3 rounded-xl items-center justify-center active:opacity-80 ${variantContainer[variant]} ${className}`}
-            {...props}
+        <TouchableOpacity
+            onPress={onPress}
+            disabled={disabled || isLoading}
+            activeOpacity={0.8}
+            className={`flex-row items-center justify-center rounded-xl py-4 px-5 border shadow-sm ${variantStyles[variant] || variantStyles.primary
+                } ${disabled ? 'opacity-50' : 'opacity-100'} ${className}`}
         >
-            <Text className={`text-base ${variantText[variant]}`}>{title}</Text>
-        </Pressable>
+            {isLoading ? (
+                <ActivityIndicator color={variant === 'secondary' ? '#1A237E' : '#FFFFFF'} />
+            ) : (
+                <>
+                    {icon && <>{icon}</>}
+                    <Text className={`font-semibold text-base ${textStyles[variant] || textStyles.primary} ${icon ? 'ml-2' : ''}`}>
+                        {title}
+                    </Text>
+                </>
+            )}
+        </TouchableOpacity>
     );
-};
+}

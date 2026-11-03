@@ -2,18 +2,21 @@
   "expo": {
     "name": "syncly",
     "slug": "syncly",
+    "owner": "mstrato",
+    "scheme": "syncly",
     "updates": {
       "enabled": false
     },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "syncly",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.mstrato.syncly"
     },
     "android": {
+      "package": "com.mstrato.syncly",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
