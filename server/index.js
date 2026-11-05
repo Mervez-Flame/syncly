@@ -18,7 +18,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
 
 // Start Server Listener
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT;
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`FocusFlow Server running on port ${PORT}`);
 });

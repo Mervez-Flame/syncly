@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LogOut, User, Mail, Bell, Shield, ChevronRight, Sparkles, } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext'; // Adjust path if needed
+import BottomNav from '../components/BottomNav';
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -30,7 +31,7 @@ export default function ProfileScreen() {
     return (
         <SafeAreaView className={`flex-1 bg-[#F4F5FF] ${Platform.OS === 'android' ? 'pt-6' : ''}`}>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }} showsVerticalScrollIndicator={false}>
-                
+
                 {/* Screen Header */}
                 <Text className="text-2xl font-bold text-primary mb-6">Profile Settings</Text>
 
@@ -98,6 +99,8 @@ export default function ProfileScreen() {
 
                 <Text className="text-center text-xs text-neutral">FocusFlow v1.0.0</Text>
             </ScrollView>
+            {/* Bottom Navigation */}
+            <BottomNav />
         </SafeAreaView>
     );
 }

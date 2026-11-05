@@ -3,13 +3,14 @@ import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowRight, Infinity as InfinityIcon, CalendarCheck, Sparkles, CheckSquare } from 'lucide-react-native';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
+// import * as Google from 'expo-auth-session/providers/google';
+// import * as WebBrowser from 'expo-web-browser';
+// import * as AuthSession from 'expo-auth-session';
 import { useAuth } from '../context/AuthContext';
+import { GoogleSignin, isSuccessResponse, isErrorWithCode, statusCodes, } from '@react-native-google-signin/google-signin';
 
 // Complete auth session redirect handling for mobile web browser overlays
-WebBrowser.maybeCompleteAuthSession();
+// WebBrowser.maybeCompleteAuthSession();
 
 const SLIDES = [
     {
@@ -28,6 +29,16 @@ const SLIDES = [
     },
 ];
 
+GoogleSignin.configure({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    offlineAccess: true,            // gives you the serverAuthCode
+    forceCodeForRefreshToken: true, // like prompt: 'consent', so you get a refresh token
+    scopes: [
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/calendar.events',
+    ],
+});
+
 export default function OnboardingScreen() {
     const router = useRouter();
     const { login } = useAuth();
@@ -35,45 +46,73 @@ export default function OnboardingScreen() {
     const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     // Make Expo Auth Proxy URL (https://auth.expo.io/@username/slug)
-    const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'syncly',
-    });
+    // const redirectUri = AuthSession.makeRedirectUri({
+    //     scheme: 'syncly',
+    //     // native: 'com.mstrato.syncly://',
+    // });
+    // console.log("Generated Redirect URI:", redirectUri);
 
-    // Add a log to confirm the exact URI in your terminal
-    console.log("Generated Redirect URI:", redirectUri);
+    // const [request, response, promptAsync] = Google.useAuthRequest({
+    //     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    //     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    //     webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    //     // redirectUri: redirectUri,
+    //     scopes: [
+    //         'openid',
+    //         'profile',
+    //         'email',
+    //         'https://www.googleapis.com/auth/gmail.readonly',
+    //         'https://www.googleapis.com/auth/calendar.events',
+    //     ],
+    //     responseType: 'code',
+    //     extraParams: {
+    //         access_type: 'offline',
+    //         prompt: 'consent',
+    //     },
+    // });
 
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        androidClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
-        iosClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
-        webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
-        redirectUri: redirectUri,
-        scopes: [
-            'openid',
-            'profile',
-            'email',
-            'https://www.googleapis.com/auth/gmail.readonly',
-            'https://www.googleapis.com/auth/calendar.events',
-        ],
-        responseType: 'code',
-        extraParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-        },
-    });
+    // // Handle Google OAuth response
+    // useEffect(() => {
+    //     console.log("🟢 [2. OAUTH RESPONSE EVENT]:", JSON.stringify(response, null, 2));
+    //     if (response?.type === 'success') {
+    //         const { code } = response.params;
+    //         console.log("🟢 [3. AUTH CODE CAPTURED]:", code ? "Code Present" : "Missing Code");
+    //         handleBackendExchange(code);
+    //     } else if (response?.type) {
+    //         console.warn("🔴 [2b. OAUTH NON-SUCCESS TYPE]:", response.type);
+    //     }
+    // }, [response]);
 
-    // Handle Google OAuth response
-    useEffect(() => {
-        console.log("🟢 [2. OAUTH RESPONSE EVENT]:", JSON.stringify(response, null, 2));
-        if (response?.type === 'success') {
-            const { code } = response.params;
-            console.log("🟢 [3. AUTH CODE CAPTURED]:", code ? "Code Present" : "Missing Code");
-            handleBackendExchange(code);
-        } else if (response?.type) {
-            console.warn("🔴 [2b. OAUTH NON-SUCCESS TYPE]:", response.type);
+    const handleGoogleSignIn = async () => {
+        try {
+            setIsLoggingIn(true);
+            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+            const response = await GoogleSignin.signIn();
+
+            if (isSuccessResponse(response)) {
+                const { serverAuthCode } = response.data;
+                if (!serverAuthCode) {
+                    Alert.alert('Sign-in failed', 'No auth code returned from Google.');
+                    return;
+                }
+                await handleBackendExchange(serverAuthCode);
+            }
+        } catch (error) {
+            console.error('🔴 [GOOGLE SIGN-IN ERROR]:', error);
+            if (isErrorWithCode(error)) {
+                if (error.code === statusCodes.SIGN_IN_CANCELLED) return;
+                if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+                    Alert.alert('Google Play Services is not available on this device.');
+                    return;
+                }
+            }
+            Alert.alert('Sign-in failed', 'Something went wrong, please try again.');
+        } finally {
+            setIsLoggingIn(false);
         }
-    }, [response]);
+    };
 
-    // Send authorization code to Express server
+    // // Send authorization code to Express server
     const handleBackendExchange = async (authCode) => {
         const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/auth/google`;
         console.log("🟢 [4. SENDING TO BACKEND]:", apiUrl);
@@ -88,14 +127,14 @@ export default function OnboardingScreen() {
 
             const data = await res.json();
             console.log("🟢 [5. BACKEND HTTP STATUS]:", res.status);
-            console.log("🟢 [6. BACKEND PAYLOAD]:", data);
 
             if (res.ok) {
                 console.log("🟢 [7. AUTH SUCCESSFUL - NAVIGATING]");
                 await login(data.token, data.user);
-                router.replace('/(tabs)/dashboard');
+                router.replace('/dashboard');
             } else {
-                console.error("🔴 [5b. BACKEND REJECTED AUTH]:", data.message);
+                console.error("🔴 [5b. BACKEND REJECTED AUTH]:", data.error);
+                Alert.alert('Sign-in failed', data.error)
             }
         } catch (err) {
             console.error("🔴 [4b. FETCH NETWORK ERROR]:", err.message);
@@ -103,6 +142,7 @@ export default function OnboardingScreen() {
             setIsLoggingIn(false);
         }
     };
+
 
     const handleNext = () => {
         if (currentStep < 2) {
@@ -212,11 +252,11 @@ export default function OnboardingScreen() {
                             <TouchableOpacity
                                 onPress={() => {
                                     console.log("🟢 [0. SIGN-IN BUTTON TAPPED]");
-                                    promptAsync();
+                                    handleGoogleSignIn();
                                 }}
-                                disabled={!request || isLoggingIn}
+                                disabled={isLoggingIn}
                                 activeOpacity={0.85}
-                                className={`w-full border border-gray-200 py-3.5 rounded-2xl flex-row items-center justify-center gap-3 bg-white mb-4 ${(!request || isLoggingIn) ? 'opacity-50' : 'opacity-100'
+                                className={`w-full border border-gray-200 py-3.5 rounded-2xl flex-row items-center justify-center gap-3 bg-white mb-4 ${isLoggingIn ? 'opacity-50' : 'opacity-100'
                                     }`}
                             >
                                 {isLoggingIn ? (

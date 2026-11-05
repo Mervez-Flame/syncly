@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, Platform, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { ArrowLeft, Calendar, RefreshCw, CheckCircle2, Plus, } from 'lucide-react-native';
+import { ArrowLeft, Calendar, RefreshCw, CheckCircle2, Plus, Clock, Check, X, } from 'lucide-react-native';
 import { useTasks } from '../context/TaskContext';
 
 const CATEGORIES = ['History 201', 'Organic Chem', 'CSC 401', 'Misc'];
@@ -16,27 +16,73 @@ export default function CreateTaskScreen() {
     const [description, setDescription] = useState('');
 
     // Date Picker States
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [dueDateTime, setDueDateTime] = useState('');
+    const [dueDate, setDueDate] = useState('');
+    const [dueTime, setDueTime] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
-
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedTime, setSelectedTime] = useState(new Date());
     const [syncCalendar, setSyncCalendar] = useState(true);
-    const [selectedCategory, setSelectedCategory] = useState('History 201');
+    const [selectedCourse, setSelectedCourse] = useState('');
+    const [isAddingCourse, setIsAddingCourse] = useState(false);
+    const [newCourseInput, setNewCourseInput] = useState('');
+
+    const [courses, setCourses] = useState([
+        { id: 'CS 401', label: 'Selected', code: 'CS 401', color: '#3F51B5' },
+        { id: 'CHM 201', label: 'Elective', code: 'CHM 201', color: '#5C1800' },
+        { id: 'POL 301', label: 'Other', code: 'POL 301', color: '#77767D' },
+    ]);
+
+    //Add custom  course pill
+    const handleAddCustomCourse = () => {
+        const formattedCode = newCourseInput.trim().toUpperCase();
+        if (!formattedCode) {
+            setIsAddingCourse(false);
+            return;
+        }
+
+        // Add to list if it doesn't already exist
+        if (!courses.some((c) => c.id === formattedCode)) {
+            const newPill = {
+                id: formattedCode,
+                code: formattedCode,
+                color: '#1A237E',
+            };
+            setCourses((prev) => [...prev, newPill]);
+        }
+
+        // Automatically select the newly created course & close input
+        setSelectedCourse(formattedCode);
+        setNewCourseInput('');
+        setIsAddingCourse(false);
+    };
+
 
     // Handle Date Change
     const handleDateChange = (event, date) => {
-        if (Platform.OS === 'android') {
-            setShowDatePicker(false);
-        }
-
+        setShowDatePicker(Platform.OS === 'ios');
         if (date) {
             setSelectedDate(date);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            });
+            setDueDate(formattedDate);
+        }
+    };
 
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-
-            setDueDateTime(`${day}/${month}/${year}`);
+    // Time selection handler
+    const handleTimeChange = (event, time) => {
+        setShowTimePicker(Platform.OS === 'ios');
+        if (time) {
+            setSelectedTime(time);
+            const formattedTime = time.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            });
+            setDueTime(formattedTime);
         }
     };
 
@@ -108,34 +154,63 @@ export default function CreateTaskScreen() {
 
                 {/* Card 2: Date, Time & Calendar Sync */}
                 <View className="bg-white rounded-2xl p-4 mb-5 border border-gray-100 shadow-sm">
-                    <Text className="text-sm font-bold text-primary mb-2">Due Date & Time</Text>
+                    {/* Card 2: Date, Time & Calendar Sync */}
+                    <View className="bg-white rounded-2xl p-4 mb-5 border border-gray-100 shadow-sm">
+                        <Text className="text-sm font-bold text-primary mb-2">Due Date & Time</Text>
 
-                    <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => setShowDatePicker(true)}
-                        className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between mb-4"
-                    >
-                        <Text
-                            className={`text-base ${dueDateTime ? 'text-primary font-medium' : 'text-neutral'}`}
-                        >
-                            {dueDateTime || 'dd/mm/yyyy --:--'}
-                        </Text>
+                        {/* Side-by-side Date & Time Selectors */}
+                        <View className="flex-row justify-between mb-4">
+                            {/* Due Date Button */}
+                            <View className="flex-1 mr-2">
+                                <TouchableOpacity
+                                    activeOpacity={0.8}
+                                    onPress={() => setShowDatePicker(true)}
+                                    className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between"
+                                >
+                                    <Text className={`text-sm ${dueDate ? 'text-primary font-medium' : 'text-neutral'}`}>
+                                        {dueDate || 'Select Date'}
+                                    </Text>
+                                    <Calendar size={18} color="#3F51B5" />
+                                </TouchableOpacity>
+                            </View>
 
-                        <View className="flex-row items-center gap-2">
-                            <Calendar size={20} color="#3F51B5" />
+                            {/* Time Button */}
+                            <View className="flex-1 ml-2">
+                                <TouchableOpacity
+                                    activeOpacity={0.8}
+                                    onPress={() => setShowTimePicker(true)}
+                                    className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between"
+                                >
+                                    <Text className={`text-sm ${dueTime ? 'text-primary font-medium' : 'text-neutral'}`}>
+                                        {dueTime || 'Select Time'}
+                                    </Text>
+                                    <Clock size={18} color="#3F51B5" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </TouchableOpacity>
 
-                    {/* Native Date Picker Modal */}
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={selectedDate}
-                            mode="date"
-                            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                            minimumDate={new Date()}
-                            onValueChange={handleDateChange} // 👈 4. Updated to onChange
-                        />
-                    )}
+                        {/* Native Date Picker Modal */}
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={selectedDate || new Date()}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                minimumDate={new Date()}
+                                onValueChange={handleDateChange} // ✅ Standard prop is `onChange`, not `onValueChange`
+                            />
+                        )}
+
+                        {/* Native Time Picker Modal */}
+                        {showTimePicker && (
+                            <DateTimePicker
+                                value={selectedTime || new Date()}
+                                mode="time"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                is24Hour={false}
+                                onValueChange={handleTimeChange} // ✅ Independent time handler
+                            />
+                        )}
+                    </View>
 
                     <View className="pt-3 border-t border-gray-100 flex-row items-center justify-between">
                         <View className="flex-row items-center gap-3">
@@ -158,58 +233,83 @@ export default function CreateTaskScreen() {
                     </View>
                 </View>
 
-                {/* Section 3: Course / Category Chips */}
-                <View className="mb-8">
-                    <Text className="text-sm font-bold text-primary mb-3">
-                        Course / Category
-                    </Text>
-                    <View className="flex-row flex-wrap items-center gap-2.5">
-                        {CATEGORIES.map((cat) => {
-                            const isSelected = selectedCategory === cat;
-                            return (
-                                <TouchableOpacity
-                                    key={cat}
-                                    onPress={() => setSelectedCategory(cat)}
-                                    activeOpacity={0.8}
-                                    className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full ${
-                                        isSelected ? 'bg-secondary' : 'bg-[#EFEFF4]'
-                                    }`}
-                                >
-                                    <View
-                                        className={`w-2 h-2 rounded-full ${
-                                            isSelected ? 'bg-amber-400' : 'bg-secondary'
-                                        }`}
-                                    />
-                                    <Text
-                                        className={`font-semibold text-sm ${
-                                            isSelected ? 'text-white' : 'text-primary'
-                                        }`}
-                                    >
-                                        {cat}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
+                {/* Course Pills */}
+                <View className="mt-4">
+                    <Text className="text-sm font-semibold text-slate-900 mb-2">Course</Text>
 
-                        <TouchableOpacity className="w-10 h-10 rounded-full border border-dashed border-gray-300 items-center justify-center bg-white">
-                            <Plus size={18} color="#77767D" />
-                        </TouchableOpacity>
-                    </View>
+                    {isAddingCourse ? (
+                        /* Single-line text input for dynamic course creation */
+                        <View className="flex-row items-center bg-white border border-primary rounded-2xl px-3 py-1.5 mt-1">
+                            <TextInput
+                                className="flex-1 text-sm font-bold text-slate-900 py-1.5"
+                                placeholder="e.g. CSC 411 or ENG 101"
+                                placeholderTextColor="#77767D"
+                                value={newCourseInput}
+                                onChangeText={setNewCourseInput}
+                                autoCapitalize="characters"
+                                autoFocus
+                                onSubmitEditing={handleAddCustomCourse}
+                            />
+                            <TouchableOpacity
+                                className="w-8 h-8 rounded-full bg-primary items-center justify-center mr-1"
+                                onPress={handleAddCustomCourse}
+                            >
+                                <Check size={16} color="#FFFFFF" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center"
+                                onPress={() => {
+                                    setIsAddingCourse(false);
+                                    setNewCourseInput('');
+                                }}
+                            >
+                                <X size={16} color="#77767D" />
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        /* Horizontal Course Pills + Plus Button */
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-1">
+                            {courses.map((c) => {
+                                const isSelected = selectedCourse === c.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={c.id}
+                                        onPress={() => setSelectedCourse(c.id)}
+                                        activeOpacity={0.7}
+                                        className={`flex-row items-center bg-white border rounded-2xl py-2 px-3.5 mr-2.5 min-w-[90px] ${isSelected ? 'border-primary bg-surface-light' : 'border-gray-200'
+                                            }`}
+                                    >
+                                        <View className="w-1.5 h-6 rounded-sm mr-2" style={{ backgroundColor: c.color }} />
+                                        <Text className={`text-sm font-bold ${isSelected ? 'text-primary' : 'text-slate-900'}`}>
+                                            {c.code}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+
+                            {/* Plus Button to Trigger Input */}
+                            <TouchableOpacity
+                                onPress={() => setIsAddingCourse(true)}
+                                className="w-11 h-11 rounded-full bg-surface-light items-center justify-center border border-gray-200"
+                            >
+                                <Plus size={20} color="#1A237E" />
+                            </TouchableOpacity>
+                        </ScrollView>
+                    )}
                 </View>
 
                 {/* CTA Button */}
                 <TouchableOpacity
                     onPress={handleCreateTask}
                     activeOpacity={0.9}
-                    className={`py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-md ${
-                        taskName.trim() ? 'bg-primary' : 'bg-gray-300'
-                    }`}
+                    className={`py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-md ${taskName.trim() ? 'bg-primary' : 'bg-gray-300'
+                        }`}
                     disabled={!taskName.trim()}
                 >
                     <CheckCircle2 size={22} color="#FFFFFF" />
                     <Text className="text-white text-lg font-bold">Create Task</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }

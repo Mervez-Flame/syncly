@@ -40,8 +40,11 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "@react-native-google-signin/google-signin",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-build-properties",
+      ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
     ],
     "experiments": {
       "typedRoutes": true,

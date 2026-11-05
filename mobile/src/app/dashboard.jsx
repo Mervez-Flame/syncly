@@ -5,6 +5,7 @@ import { Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Bell, Mail, Clock, Plus, LayoutGrid, Calendar, User, FileText, Check, } from 'lucide-react-native';
+import BottomNav from './../components/BottomNav';
 
 // const INITIAL_TASKS = [
 //     {
@@ -72,12 +73,13 @@ export default function DashboardScreen() {
                     {/* Header */}
                     <View className="flex-row items-center justify-between mb-6">
                         <View className="flex-row items-center gap-3">
-                            <Image
-                                source={{
-                                    uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
-                                }}
-                                className="w-12 h-12 rounded-full"
-                            />
+                            {user?.avatar ? (
+                                <Image source={{ uri: user.avatar }} className="w-16 h-16 rounded-2xl mr-4" />
+                            ) : (
+                                <View className="w-16 h-16 rounded-2xl bg-surface-light items-center justify-center mr-4">
+                                    <User size={32} color="#1A237E" />
+                                </View>
+                            )}
                             <View>
                                 <Text className="text-xl font-bold text-primary">
                                     Hello, {user?.name ? user.name.split(' ')[0] : 'Jason'}
@@ -130,65 +132,67 @@ export default function DashboardScreen() {
                             const courseTextColor = task.courseTextColor || 'text-secondary';
                             const sourceType = task.sourceType || 'manual';
                             const sourceLabel = task.sourceLabel || (sourceType === 'email' ? 'Auto Ingested' : 'User Created');
-                            const dueTime = task.dueTime || task.dueDate || 'Today';
+                            // Combine non-empty date and time into a single readable string
+                            const deadlineParts = [task.dueDate, task.dueTime].filter((item) => item && item.trim() !== '');
+                            const displayDeadline = deadlineParts.length > 0 ? deadlineParts.join(', ') : 'Not Specified';
 
                             return (
-                            <TouchableOpacity
-                                key={task.id}
-                                activeOpacity={0.85}
-                                onPress={() => router.push(`/edit-task?taskId=${task.id}`)}
-                                className={`bg-white rounded-2xl p-4 border border-gray-100 border-l-[5px] ${borderAccent} flex-row items-center gap-3 shadow-sm`}
-                            >
-                                {/* Checkbox */}
                                 <TouchableOpacity
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        toggleTask(task.id);
-                                    }}
-                                    className={`w-6 h-6 rounded-lg border border-gray-300 items-center justify-center ${task.completed
-                                        ? 'bg-secondary border-secondary'
-                                        : 'bg-white'
-                                        }`}
+                                    key={task.id}
+                                    activeOpacity={0.85}
+                                    onPress={() => router.push(`/edit-task?taskId=${task.id}`)}
+                                    className={`bg-white rounded-2xl p-4 border border-gray-100 border-l-[5px] ${borderAccent} flex-row items-center gap-3 shadow-sm`}
                                 >
-                                    {task.completed && (
-                                        <Check size={14} color="#FFFFFF" strokeWidth={3} />
-                                    )}
-                                </TouchableOpacity>
-
-                                {/* Content */}
-                                <View className="flex-1">
-                                    <View className="flex-row items-center gap-2 mb-1.5">
-                                        <View className={`${courseBg} px-2.5 py-0.5 rounded-md`}>
-                                            <Text className={`text-xs font-bold ${courseTextColor}`}>
-                                                {task.course}
-                                            </Text>
-                                        </View>
-                                        <View className="flex-row items-center gap-1">
-                                            {sourceType === 'email' ? (
-                                                <Mail size={13} color="#77767D" />
-                                            ) : (
-                                                <FileText size={13} color="#77767D" />
-                                            )}
-                                            <Text className="text-xs text-neutral font-medium">
-                                                {sourceLabel}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    <Text
-                                        className={`text-lg font-bold text-primary mb-1 ${task.completed ? 'line-through text-neutral' : ''
+                                    {/* Checkbox */}
+                                    <TouchableOpacity
+                                        onPress={(e) => {
+                                            e.stopPropagation();
+                                            toggleTask(task.id);
+                                        }}
+                                        className={`w-6 h-6 rounded-lg border border-gray-300 items-center justify-center ${task.completed
+                                            ? 'bg-secondary border-secondary'
+                                            : 'bg-white'
                                             }`}
                                     >
-                                        {task.title}
-                                    </Text>
-                                    <View className="flex-row items-center gap-1">
-                                        <Clock size={14} color="#77767D" />
-                                        <Text className="text-xs text-neutral font-medium">
-                                            Due {dueTime}
+                                        {task.completed && (
+                                            <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                                        )}
+                                    </TouchableOpacity>
+
+                                    {/* Content */}
+                                    <View className="flex-1">
+                                        <View className="flex-row items-center gap-2 mb-1.5">
+                                            <View className={`${courseBg} px-2.5 py-0.5 rounded-md`}>
+                                                <Text className={`text-xs font-bold ${courseTextColor}`}>
+                                                    {task.course}
+                                                </Text>
+                                            </View>
+                                            <View className="flex-row items-center gap-1">
+                                                {sourceType === 'email' ? (
+                                                    <Mail size={13} color="#77767D" />
+                                                ) : (
+                                                    <FileText size={13} color="#77767D" />
+                                                )}
+                                                <Text className="text-xs text-neutral font-medium">
+                                                    {sourceLabel}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <Text
+                                            className={`text-lg font-bold text-primary mb-1 ${task.completed ? 'line-through text-neutral' : ''
+                                                }`}
+                                        >
+                                            {task.title}
                                         </Text>
+                                        <View className="flex-row items-center gap-1">
+                                            <Clock size={14} color="#77767D" />
+                                            <Text className="text-xs text-neutral font-medium">
+                                                {displayDeadline === 'Not Specified' ? 'Not Specified' : `Due ${displayDeadline}`}
+                                            </Text>
+                                        </View>
                                     </View>
-                                </View>
-                            </TouchableOpacity>
-                        );
+                                </TouchableOpacity>
+                            );
                         })}
                     </View>
                 </ScrollView>
@@ -202,52 +206,7 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
 
                 {/* Bottom Navigation */}
-                <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-3 px-6 flex-row justify-between items-center z-10">
-                    {/* Dashboard */}
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('dashboard')}
-                        className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${activeTab === 'dashboard' ? 'bg-secondary/20' : ''
-                            }`}
-                    >
-                        <LayoutGrid
-                            size={20}
-                            color={activeTab === 'dashboard' ? '#3F51B5' : '#77767D'}
-                        />
-                        {activeTab === 'dashboard' && (
-                            <Text className="text-secondary font-bold text-sm">Dashboard</Text>
-                        )}
-                    </TouchableOpacity>
-
-                    {/*  Calendar Button */}
-                    <TouchableOpacity
-                        onPress={() => { setActiveTab('calendar'); router.push('/calendar'); }}
-                        className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${activeTab === 'calendar' ? 'bg-secondary/20' : ''
-                            }`}
-                    >
-                        <Calendar
-                            size={20}
-                            color={activeTab === 'calendar' ? '#3F51B5' : '#77767D'}
-                        />
-                        {activeTab === 'calendar' && (
-                            <Text className="text-secondary font-bold text-sm">Calendar</Text>
-                        )}
-                    </TouchableOpacity>
-
-                    {/* Profile Button */}
-                    <TouchableOpacity
-                        onPress={() => { setActiveTab('profile'); router.push('/profile'); }}
-                        className={`flex-row items-center gap-2 px-4 py-2.5 rounded-2xl ${activeTab === 'profile' ? 'bg-secondary/20' : ''
-                            }`}
-                    >
-                        <User
-                            size={20}
-                            color={activeTab === 'profile' ? '#3F51B5' : '#77767D'}
-                        />
-                        {activeTab === 'profile' && (
-                            <Text className="text-secondary font-bold text-sm">Profile</Text>
-                        )}
-                    </TouchableOpacity>
-                </View>
+                <BottomNav />
             </View>
         </SafeAreaView>
     );

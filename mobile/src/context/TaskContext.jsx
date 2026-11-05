@@ -53,7 +53,7 @@ export function TaskProvider({ children }) {
 
     const toggleTask = (id) => {
         const updated = tasks.map((t) =>
-            t.id === id ? { ...t, completed: !t.completed } : t
+            (t.id === id || t._id === id) ? { ...t, completed: !t.completed } : t
         );
         saveTasks(updated);
     };
@@ -68,8 +68,27 @@ export function TaskProvider({ children }) {
         saveTasks([taskObj, ...tasks]);
     };
 
+    // ✅ Update task function for EditTaskScreen
+    const updateTask = (id, updatedFields) => {
+        const updated = tasks.map((t) =>
+            (t.id === id || t._id === id) ? { ...t, ...updatedFields } : t
+        );
+        saveTasks(updated);
+    };
+
+    // Delete task function for edit task screen 
+    const deleteTask = (id) => {
+        const updated = tasks.filter((t) => t.id !== id && t._id !== id);
+        saveTasks(updated);
+        // --- MONGODB BACKEND SYNC (Phase 2/3) ---
+        // fetch(`${API_URL}/api/tasks/${id}`, { method: 'DELETE' }).catch(console.error);
+    };
+
+    // ✅ Helper function to retrieve a specific task by ID
+    const getTaskById = (id) => tasks.find((t) => t.id === id || t._id === id);
+
     return (
-        <TaskContext.Provider value={{ tasks, toggleTask, addTask }}>
+        <TaskContext.Provider value={{ tasks, toggleTask, addTask, updateTask, deleteTask, getTaskById }}>
             {children}
         </TaskContext.Provider>
     );
