@@ -1,106 +1,74 @@
 // mobile/src/screens/EditTaskScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, Alert, Platform, } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Trash2, Tag, Plus, Calendar, Clock, Check, Save, CalendarCheck2, X, } from 'lucide-react-native';
-import NetInfo from '@react-native-community/netinfo';
+import { ArrowLeft, Trash2, Plus, Calendar, Clock, Check, Save, Info, X } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Button from '../components/Button';
-import { updateTaskWithOfflineSupport, processSyncQueue } from '../utils/offlineSync';
 import { useTasks } from '../context/TaskContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function EditTaskScreen() {
     const router = useRouter();
-    const { taskId } = useLocalSearchParams(); // Reads ?taskId=... from Dashboard
+    const { taskId } = useLocalSearchParams();
     const { getTaskById, updateTask, deleteTask } = useTasks();
+
+    const currentTask = getTaskById(taskId);
+
+    // Determines if the task is an AI-extracted calendar event (Read-Only)
+    const isSyncedEvent = !!currentTask?.calendarEventId;
+
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [dateValue, setDateValue] = useState(new Date());
     const [timeValue, setTimeValue] = useState(new Date());
 
-    // Fetch the target task from context by ID
-    const currentTask = getTaskById(taskId);
+    // Local form state
+    const [title, setTitle] = useState('');
+    const [selectedCourse, setSelectedCourse] = useState('');
+    const [dueDate, setDueDate] = useState('');
+    const [dueTime, setDueTime] = useState('');
+    const [description, setDescription] = useState('');
 
-    // Local form state initialized from currentTask
-    const [title, setTitle] = useState(currentTask?.title ?? '');
-    const [selectedCourse, setSelectedCourse] = useState(currentTask?.course ?? '');
-    const [dueDate, setDueDate] = useState(currentTask?.dueDate ?? '');
-    const [dueTime, setDueTime] = useState(currentTask?.dueTime ?? '');
-    const [description, setDescription] = useState(currentTask?.description ?? '');
-    const [syncToCalendar, setSyncToCalendar] = useState(currentTask?.syncToCalendar ?? true);
     const [isSaving, setIsSaving] = useState(false);
     const [isAddingCourse, setIsAddingCourse] = useState(false);
     const [newCourseInput, setNewCourseInput] = useState('');
 
     const [courses, setCourses] = useState([
-        { id: 'CS 401', label: 'Selected', code: 'CS 401', color: '#3F51B5' },
-        { id: 'CHM 201', label: 'Elective', code: 'CHM 201', color: '#5C1800' },
-        { id: 'POL 301', label: 'Other', code: 'POL 301', color: '#77767D' },
+        { id: 'CS 401', code: 'CS 401', color: '#3F51B5' },
+        { id: 'CHM 201', code: 'CHM 201', color: '#5C1800' },
+        { id: 'POL 301', code: 'POL 301', color: '#77767D' },
     ]);
 
-    // Date selection handler
-    const onDateChange = (event, selectedDate) => {
-        setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS modal, close on Android select
-        if (selectedDate) {
-            setDateValue(selectedDate);
-            const formattedDate = selectedDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-            }); // e.g., "Oct 28, 2026"
-            setDueDate(formattedDate);
-        }
-    };
-
-    // Time selection handler
-    const onTimeChange = (event, selectedTime) => {
-        setShowTimePicker(Platform.OS === 'ios');
-        if (selectedTime) {
-            setTimeValue(selectedTime);
-            const formattedTime = selectedTime.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
-            }); // e.g., "11:59 PM"
-            setDueTime(formattedTime);
-        }
-    };
-
-    // Keep inputs in sync if taskId changes or task data updates
+    // Keep inputs in sync if taskId changes or task data loads
     useEffect(() => {
         if (currentTask) {
-            setTitle(currentTask.title ?? '');
-            setSelectedCourse(currentTask.course ?? '');
-            setDueDate(currentTask.dueDate ?? '');
-            setDueTime(currentTask.dueTime ?? '');
-            setDescription(currentTask.description ?? '');
-            setSyncToCalendar(currentTask.syncToCalendar ?? true);
+            setTitle(currentTask.title || '');
+            setSelectedCourse(currentTask.courseCode || '');
+            setDescription(currentTask.description || '');
+
+            if (currentTask.dueDate) {
+                const existingDate = new Date(currentTask.dueDate);
+                setDateValue(existingDate);
+                setTimeValue(existingDate);
+
+                setDueDate(existingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+                setDueTime(existingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+            }
         }
     }, [taskId, currentTask]);
 
-    //current task pill
+    // Add current course to pill list if it doesn't exist
     useEffect(() => {
-        if (currentTask?.course && !courses.some((c) => c.id === currentTask.course)) {
+        if (currentTask?.courseCode && !courses.some((c) => c.id === currentTask.courseCode)) {
             setCourses((prev) => [
                 ...prev,
-                { id: currentTask.course, code: currentTask.course, color: '#1A237E' },
+                { id: currentTask.courseCode, code: currentTask.courseCode, color: '#1A237E' },
             ]);
         }
     }, [currentTask]);
 
-    //check for network
-    useEffect(() => {
-        const unsubscribe = NetInfo.addEventListener((state) => {
-            if (state.isConnected) {
-                processSyncQueue(process.env.EXPO_PUBLIC_API_URL);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
-
-
-    //Add course
+    // Add custom course
     const handleAddCustomCourse = () => {
         const formattedCode = newCourseInput.trim().toUpperCase();
         if (!formattedCode) {
@@ -108,64 +76,71 @@ export default function EditTaskScreen() {
             return;
         }
 
-        // Add to list if it doesn't already exist
         if (!courses.some((c) => c.id === formattedCode)) {
             const newPill = {
                 id: formattedCode,
                 code: formattedCode,
-                color: '#1A237E', // Brand accent color for custom courses
+                color: '#1A237E',
             };
             setCourses((prev) => [...prev, newPill]);
         }
 
-        // Select the new course & close input
         setSelectedCourse(formattedCode);
         setNewCourseInput('');
         setIsAddingCourse(false);
     };
 
-    //Save changes
-    const handleSaveChanges = async () => {
-        const activeId = taskId || currentTask?.id || currentTask?._id;
-        if (!activeId) {
-            Alert.alert('Error', 'No task ID found.');
-            return;
+    const onDateChange = (event, selectedDate) => {
+        setShowDatePicker(Platform.OS === 'ios');
+        if (selectedDate) {
+            setDateValue(selectedDate);
+            setDueDate(selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
         }
+    };
+
+    const onTimeChange = (event, selectedTime) => {
+        setShowTimePicker(Platform.OS === 'ios');
+        if (selectedTime) {
+            setTimeValue(selectedTime);
+            setDueTime(selectedTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+        }
+    };
+
+    const handleSaveChanges = async () => {
+        const activeId = taskId || currentTask?.localTaskId || currentTask?._id;
+        if (!activeId) return;
 
         setIsSaving(true);
+
+        // Combine date and time back into a single ISO timestamp
+        let finalDueDate = null;
+        if (dueDate) {
+            const combined = new Date(dateValue);
+            combined.setHours(timeValue.getHours());
+            combined.setMinutes(timeValue.getMinutes());
+            combined.setSeconds(0);
+            combined.setMilliseconds(0);
+            finalDueDate = combined.toISOString();
+        }
+
         const updatedData = {
-            title,
-            course: selectedCourse,
-            dueDate,
-            dueTime,
-            description,
-            syncToCalendar,
-            updatedAt: new Date().toISOString(),
+            title: title.trim(),
+            description: description.trim(),
+            courseCode: selectedCourse || null,
+            dueDate: finalDueDate,
         };
 
-        // Update React Context immediately so Dashboard re-renders
+        // Update React Context immediately (which flags syncState as pending_update)
         if (updateTask) {
             updateTask(activeId, updatedData);
         }
 
-        // Sync via offline queue / API
-        const result = await updateTaskWithOfflineSupport(activeId, updatedData, process.env.EXPO_PUBLIC_API_URI);
         setIsSaving(false);
-
-        if (result.status === 'queued_offline') {
-            Alert.alert('Saved Offline', 'Changes saved locally. Syncing occurs when online.', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
-        } else {
-            Alert.alert('Success', 'Task updated successfully!', [
-                { text: 'OK', onPress: () => router.back() }
-            ]);
-        }
+        router.back();
     };
 
-    //Delete task
     const handleDeleteTask = () => {
-        const activeId = taskId || currentTask?.id || currentTask?._id;
+        const activeId = taskId || currentTask?.localTaskId || currentTask?._id;
         if (!activeId) return;
 
         Alert.alert(
@@ -176,15 +151,11 @@ export default function EditTaskScreen() {
                 {
                     text: 'Delete',
                     style: 'destructive',
-                    onPress: async () => {
-                        // Delete locally from context & AsyncStorage
+                    onPress: () => {
+                        // Deleting locally flips isDeleted to true (soft delete)
                         if (deleteTask) {
                             deleteTask(activeId);
                         }
-
-                        // Optional: trigger offline queue sync for API
-                        // await deleteTaskWithOfflineSupport(activeId, API_BASE_URL);
-
                         router.back();
                     },
                 },
@@ -200,21 +171,42 @@ export default function EditTaskScreen() {
                     <ArrowLeft size={24} color="#1A237E" />
                 </TouchableOpacity>
                 <Text className="text-lg font-semibold text-primary">Edit Task</Text>
-                <TouchableOpacity className="p-2" onPress={handleDeleteTask}>
-                    <Trash2 size={22} color="#5C1800" />
-                </TouchableOpacity>
+
+                {/* Hide delete button if it's an AI-synced task */}
+                {isSyncedEvent ? (
+                    <View className="w-10" />
+                ) : (
+                    <TouchableOpacity className="p-2" onPress={handleDeleteTask}>
+                        <Trash2 size={22} color="#5C1800" />
+                    </TouchableOpacity>
+                )}
             </View>
 
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+
+                {/* AI Task Read-Only Warning */}
+                {isSyncedEvent && (
+                    <View className="bg-orange-50 border border-orange-200 rounded-xl p-4 mt-4 flex-row items-start">
+                        <Info size={20} color="#E65100" className="mt-0.5" />
+                        <View className="flex-1 ml-3">
+                            <Text className="text-sm font-bold text-orange-900">Synchronized Event</Text>
+                            <Text className="text-sm text-orange-800 mt-1 leading-5">
+                                This task was automatically scheduled. To edit details or delete it, please tap the task from your Dashboard to open the Google Calendar web view.
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
                 {/* Task Title */}
                 <View className="mt-4">
                     <Text className="text-sm font-semibold text-slate-900 mb-2">Task Title</Text>
                     <TextInput
-                        className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-slate-900"
+                        className={`border rounded-xl px-4 py-3 text-base ${isSyncedEvent ? 'bg-gray-100 border-gray-200 text-gray-500' : 'bg-white border-gray-200 text-slate-900'}`}
                         value={title}
                         onChangeText={setTitle}
                         placeholder="Enter task title"
                         placeholderTextColor="#77767D"
+                        editable={!isSyncedEvent}
                     />
                 </View>
 
@@ -222,8 +214,7 @@ export default function EditTaskScreen() {
                 <View className="mt-4">
                     <Text className="text-sm font-semibold text-slate-900 mb-2">Course</Text>
 
-                    {isAddingCourse ? (
-                        /* Single-line text input for adding a custom course */
+                    {isAddingCourse && !isSyncedEvent ? (
                         <View className="flex-row items-center bg-white border border-primary rounded-2xl px-3 py-1.5 mt-1">
                             <TextInput
                                 className="flex-1 text-sm font-bold text-slate-900 py-1.5"
@@ -252,71 +243,69 @@ export default function EditTaskScreen() {
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        /* Horizontal Course Pills + Plus Button */
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-1">
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-1 opacity-100">
                             {courses.map((c) => {
                                 const isSelected = selectedCourse === c.id;
                                 return (
                                     <TouchableOpacity
                                         key={c.id}
-                                        onPress={() => setSelectedCourse(c.id)}
-                                        activeOpacity={0.7}
-                                        className={`flex-row items-center bg-white border rounded-2xl py-2 px-3.5 mr-2.5 min-w-[90px] ${isSelected ? 'border-primary bg-surface-light' : 'border-gray-200'
+                                        onPress={() => !isSyncedEvent && setSelectedCourse(isSelected ? '' : c.id)}
+                                        activeOpacity={isSyncedEvent ? 1 : 0.7}
+                                        className={`flex-row items-center border rounded-2xl py-2 px-3.5 mr-2.5 min-w-[90px] ${isSyncedEvent ? 'bg-gray-100 border-gray-200' :
+                                                isSelected ? 'border-primary bg-surface-light' : 'bg-white border-gray-200'
                                             }`}
                                     >
-                                        <View className="w-1.5 h-6 rounded-sm mr-2" style={{ backgroundColor: c.color }} />
-                                        <Text className={`text-sm font-bold ${isSelected ? 'text-primary' : 'text-slate-900'}`}>
+                                        <View className={`w-1.5 h-6 rounded-sm mr-2 ${isSyncedEvent ? 'bg-gray-400' : ''}`} style={!isSyncedEvent ? { backgroundColor: c.color } : {}} />
+                                        <Text className={`text-sm font-bold ${isSyncedEvent ? 'text-gray-500' : isSelected ? 'text-primary' : 'text-slate-900'}`}>
                                             {c.code}
                                         </Text>
                                     </TouchableOpacity>
                                 );
                             })}
 
-                            {/* Plus Button to Trigger Input */}
-                            <TouchableOpacity
-                                onPress={() => setIsAddingCourse(true)}
-                                className="w-11 h-11 rounded-full bg-surface-light items-center justify-center border border-gray-200"
-                            >
-                                <Plus size={20} color="#1A237E" />
-                            </TouchableOpacity>
+                            {!isSyncedEvent && (
+                                <TouchableOpacity
+                                    onPress={() => setIsAddingCourse(true)}
+                                    className="w-11 h-11 rounded-full bg-surface-light items-center justify-center border border-gray-200"
+                                >
+                                    <Plus size={20} color="#1A237E" />
+                                </TouchableOpacity>
+                            )}
                         </ScrollView>
                     )}
                 </View>
 
                 {/* Due Date & Time Pickers */}
                 <View className="flex-row justify-between mt-4">
-                    {/* Due Date Trigger */}
                     <View className="flex-1 mr-2">
                         <Text className="text-sm font-semibold text-slate-900 mb-2">Due Date</Text>
                         <TouchableOpacity
-                            className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3.5 py-3"
-                            onPress={() => setShowDatePicker(true)}
-                            activeOpacity={0.7}
+                            className={`flex-row items-center border rounded-xl px-3.5 py-3 ${isSyncedEvent ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-200'}`}
+                            onPress={() => !isSyncedEvent && setShowDatePicker(true)}
+                            activeOpacity={isSyncedEvent ? 1 : 0.7}
                         >
-                            <Calendar size={18} color="#1A237E" />
-                            <Text className="text-sm font-medium text-slate-900 ml-2">
+                            <Calendar size={18} color={isSyncedEvent ? "#9CA3AF" : "#1A237E"} />
+                            <Text className={`text-sm font-medium ml-2 ${isSyncedEvent ? 'text-gray-500' : 'text-slate-900'}`}>
                                 {dueDate || 'Select Date'}
                             </Text>
                         </TouchableOpacity>
                     </View>
 
-                    {/* Time Trigger */}
                     <View className="flex-1 ml-2">
                         <Text className="text-sm font-semibold text-slate-900 mb-2">Time</Text>
                         <TouchableOpacity
-                            className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3.5 py-3"
-                            onPress={() => setShowTimePicker(true)}
-                            activeOpacity={0.7}
+                            className={`flex-row items-center border rounded-xl px-3.5 py-3 ${isSyncedEvent ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-200'}`}
+                            onPress={() => !isSyncedEvent && setShowTimePicker(true)}
+                            activeOpacity={isSyncedEvent ? 1 : 0.7}
                         >
-                            <Clock size={18} color="#1A237E" />
-                            <Text className="text-sm font-medium text-slate-900 ml-2">
+                            <Clock size={18} color={isSyncedEvent ? "#9CA3AF" : "#1A237E"} />
+                            <Text className={`text-sm font-medium ml-2 ${isSyncedEvent ? 'text-gray-500' : 'text-slate-900'}`}>
                                 {dueTime || 'Select Time'}
                             </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Native Android/iOS Date Picker Modal */}
                 {showDatePicker && (
                     <DateTimePicker
                         value={dateValue}
@@ -327,7 +316,6 @@ export default function EditTaskScreen() {
                     />
                 )}
 
-                {/* Native Android/iOS Time Picker Modal */}
                 {showTimePicker && (
                     <DateTimePicker
                         value={timeValue}
@@ -342,7 +330,7 @@ export default function EditTaskScreen() {
                 <View className="mt-4">
                     <Text className="text-sm font-semibold text-slate-900 mb-2">Description Notes</Text>
                     <TextInput
-                        className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-slate-900 min-h-[110px]"
+                        className={`border rounded-xl px-4 py-3 text-base min-h-[110px] ${isSyncedEvent ? 'bg-gray-100 border-gray-200 text-gray-500' : 'bg-white border-gray-200 text-slate-900'}`}
                         value={description}
                         onChangeText={setDescription}
                         multiline
@@ -350,37 +338,21 @@ export default function EditTaskScreen() {
                         textAlignVertical="top"
                         placeholder="Add assignment details..."
                         placeholderTextColor="#77767D"
+                        editable={!isSyncedEvent}
                     />
                 </View>
 
-                {/* Google Calendar Sync Switch */}
-                <View className="flex-row items-center justify-between bg-surface-light rounded-2xl p-4 mt-5">
-                    <View className="flex-row items-center flex-1 pr-2">
-                        <View className="w-10 h-10 rounded-full bg-white items-center justify-center mr-3">
-                            <CalendarCheck2 size={22} color="#1A237E" />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-sm font-semibold text-slate-900">Sync to Google Calendar</Text>
-                            <Text className="text-xs text-neutral mt-0.5">Update calendar entry automatically</Text>
-                        </View>
-                    </View>
-                    <Switch
-                        value={syncToCalendar}
-                        onValueChange={setSyncToCalendar}
-                        trackColor={{ false: '#77767D', true: '#1A237E' }}
-                        thumbColor="#FFFFFF"
+                {/* Save Changes Button (Hidden if Read-Only) */}
+                {!isSyncedEvent && (
+                    <Button
+                        title={isSaving ? 'Saving...' : 'Save Changes'}
+                        onPress={handleSaveChanges}
+                        variant="primary"
+                        isLoading={isSaving}
+                        className="mt-7"
+                        icon={<Save size={22} color="#FFFFFF" />}
                     />
-                </View>
-
-                {/* Save Changes Button */}
-                <Button
-                    title={isSaving ? 'Saving...' : 'Save Changes'}
-                    onPress={handleSaveChanges}
-                    variant="primary"
-                    isLoading={isSaving}
-                    className="mt-7"
-                    icon={<Save size={22} color="#FFFFFF" />}
-                />
+                )}
             </ScrollView>
         </SafeAreaView>
     );

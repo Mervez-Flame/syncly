@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { processSyncQueue } from '../utils/offlineSync';
 
 const AuthContext = createContext({});
 
@@ -40,32 +43,70 @@ export function AuthProvider({ children }) {
         loadStorageData();
     }, []);
 
-    // Session Login Handler (Supports Google OAuth Backend Payload or Direct User Data)
+    // Session Login Handler (Supports Google OAuth Backend Payload)
     const login = async (sessionPayload) => {
-        let sessionData;
-
-        if (sessionPayload?.user && sessionPayload?.token) {
-            setUser(sessionPayload.user);
-            setToken(sessionPayload.token);
-            sessionData = sessionPayload;
-        } else {
-            setUser(sessionPayload);
-            sessionData = sessionPayload;
+        const token = sessionPayload?.token || sessionPayload?.accessToken || sessionPayload?.user?.token;
+        if (!token) {
+            console.error("Login failed: No authentication token provided in sessionPayload", sessionPayload);
+            throw new Error("Authentication token is missing from session.");
         }
 
-        setHasSeenOnboarding(true);
+        const userData = sessionPayload?.user || sessionPayload;
+
+        // persist first, so state never says "logged in" when nothing was saved
+        await AsyncStorage.setItem('@user_session', JSON.stringify({ user: userData, token }));
         await AsyncStorage.setItem('@has_seen_onboarding', 'true');
-        await AsyncStorage.setItem('@user_session', JSON.stringify(sessionData));
+
+        setUser(userData);
+        setToken(token);
+        setHasSeenOnboarding(true);
     };
 
     // Logout Handler (Clears memory state & removes session storage)
     const logout = async () => {
+        // 1. Check current network connectivity
+        const netState = await NetInfo.fetch();
+
+        if (!netState.isConnected) {
+            Alert.alert(
+                'Internet Required',
+                'You must be connected to the internet to log out so your offline tasks can be synced safely.'
+            );
+            return false; // Aborts logout completely
+        }
+
         try {
+            const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.3.11:5000';
+
+            // 2. Pull token from storage for the final sync push
+            const sessionString = await AsyncStorage.getItem('@user_session');
+            const sessionData = sessionString ? JSON.parse(sessionString) : null;
+            const currentToken = sessionData?.token;
+
+            if (currentToken) {
+                console.log('Syncing pending tasks before clearing cache...');
+                await processSyncQueue(apiBaseUrl, currentToken);
+            }
+
+            // 3. Once sync completes successfully, wipe session AND local task cache
             setUser(null);
             setToken(null);
-            await AsyncStorage.removeItem('@user_session');
+
+            await AsyncStorage.multiRemove([
+                '@user_session',
+                '@focusflow_tasks'
+            ]);
+
+            console.log('Logout complete. Session and cache cleared.');
+            return true;
+
         } catch (error) {
-            console.error('Error during logout:', error);
+            console.error('Logout aborted due to sync error:', error);
+            Alert.alert(
+                'Sync Failed',
+                'Could not push your pending tasks to the server. Logout was canceled to prevent data loss.'
+            );
+            return false; // Aborts logout if the server rejects the sync
         }
     };
 
@@ -94,8 +135,8 @@ export const useAuth = () => {
             token: null,
             hasSeenOnboarding: false,
             isLoading: true,
-            login: async () => {},
-            logout: async () => {},
+            login: async () => { },
+            logout: async () => { },
         };
     }
     return context;

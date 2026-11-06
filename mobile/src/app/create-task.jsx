@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Switch, Platform, } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { ArrowLeft, Calendar, RefreshCw, CheckCircle2, Plus, Clock, Check, X, } from 'lucide-react-native';
+import { ArrowLeft, Calendar, CheckCircle2, Plus, Clock, Check, X } from 'lucide-react-native';
 import { useTasks } from '../context/TaskContext';
-
-const CATEGORIES = ['History 201', 'Organic Chem', 'CSC 401', 'Misc'];
 
 export default function CreateTaskScreen() {
     const router = useRouter();
@@ -15,25 +13,26 @@ export default function CreateTaskScreen() {
     const [taskName, setTaskName] = useState('');
     const [description, setDescription] = useState('');
 
-    // Date Picker States
+    // Date & Time Picker States
     const [dueDate, setDueDate] = useState('');
     const [dueTime, setDueTime] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState(new Date());
-    const [syncCalendar, setSyncCalendar] = useState(true);
+
+    // Course Selection States
     const [selectedCourse, setSelectedCourse] = useState('');
     const [isAddingCourse, setIsAddingCourse] = useState(false);
     const [newCourseInput, setNewCourseInput] = useState('');
 
     const [courses, setCourses] = useState([
-        { id: 'CS 401', label: 'Selected', code: 'CS 401', color: '#3F51B5' },
-        { id: 'CHM 201', label: 'Elective', code: 'CHM 201', color: '#5C1800' },
-        { id: 'POL 301', label: 'Other', code: 'POL 301', color: '#77767D' },
+        { id: 'CS 401', code: 'CS 401', color: '#3F51B5' },
+        { id: 'CHM 201', code: 'CHM 201', color: '#5C1800' },
+        { id: 'POL 301', code: 'POL 301', color: '#77767D' },
     ]);
 
-    //Add custom  course pill
+    // Add custom course pill
     const handleAddCustomCourse = () => {
         const formattedCode = newCourseInput.trim().toUpperCase();
         if (!formattedCode) {
@@ -41,7 +40,6 @@ export default function CreateTaskScreen() {
             return;
         }
 
-        // Add to list if it doesn't already exist
         if (!courses.some((c) => c.id === formattedCode)) {
             const newPill = {
                 id: formattedCode,
@@ -51,14 +49,12 @@ export default function CreateTaskScreen() {
             setCourses((prev) => [...prev, newPill]);
         }
 
-        // Automatically select the newly created course & close input
         setSelectedCourse(formattedCode);
         setNewCourseInput('');
         setIsAddingCourse(false);
     };
 
-
-    // Handle Date Change
+    // Date selection handler
     const handleDateChange = (event, date) => {
         setShowDatePicker(Platform.OS === 'ios');
         if (date) {
@@ -86,22 +82,26 @@ export default function CreateTaskScreen() {
         }
     };
 
-    // 👈 3. Updated Task Creation Handler
+    // Create Task Handler
     const handleCreateTask = () => {
         if (!taskName.trim()) return;
 
+        // Combine selectedDate and selectedTime into a single ISO timestamp
+        let finalDueDate = null;
+        if (dueDate) {
+            const combined = new Date(selectedDate);
+            combined.setHours(selectedTime.getHours());
+            combined.setMinutes(selectedTime.getMinutes());
+            combined.setSeconds(0);
+            combined.setMilliseconds(0);
+            finalDueDate = combined.toISOString();
+        }
+
         addTask({
             title: taskName.trim(),
-            course: selectedCategory,
-            dueTime: dueDateTime || '11:59 PM',
-            dueDate: dueDateTime || 'Today',
             description: description.trim(),
-            syncCalendar: syncCalendar,
-            sourceType: 'manual',
-            sourceLabel: 'User Created',
-            borderAccent: 'border-l-secondary',
-            courseBg: 'bg-secondary/15',
-            courseTextColor: 'text-secondary',
+            courseCode: selectedCourse || null,
+            dueDate: finalDueDate,
         });
 
         router.back();
@@ -132,7 +132,7 @@ export default function CreateTaskScreen() {
                     <TextInput
                         value={taskName}
                         onChangeText={setTaskName}
-                        placeholder="Task Name."
+                        placeholder="Task Name"
                         placeholderTextColor="#77767D"
                         className="border border-gray-200 rounded-xl p-3.5 text-base text-primary mb-4 bg-white"
                     />
@@ -152,93 +152,69 @@ export default function CreateTaskScreen() {
                     />
                 </View>
 
-                {/* Card 2: Date, Time & Calendar Sync */}
+                {/* Card 2: Date & Time Selection */}
                 <View className="bg-white rounded-2xl p-4 mb-5 border border-gray-100 shadow-sm">
-                    {/* Card 2: Date, Time & Calendar Sync */}
-                    <View className="bg-white rounded-2xl p-4 mb-5 border border-gray-100 shadow-sm">
-                        <Text className="text-sm font-bold text-primary mb-2">Due Date & Time</Text>
+                    <Text className="text-sm font-bold text-primary mb-2">Due Date & Time</Text>
 
-                        {/* Side-by-side Date & Time Selectors */}
-                        <View className="flex-row justify-between mb-4">
-                            {/* Due Date Button */}
-                            <View className="flex-1 mr-2">
-                                <TouchableOpacity
-                                    activeOpacity={0.8}
-                                    onPress={() => setShowDatePicker(true)}
-                                    className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between"
-                                >
-                                    <Text className={`text-sm ${dueDate ? 'text-primary font-medium' : 'text-neutral'}`}>
-                                        {dueDate || 'Select Date'}
-                                    </Text>
-                                    <Calendar size={18} color="#3F51B5" />
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Time Button */}
-                            <View className="flex-1 ml-2">
-                                <TouchableOpacity
-                                    activeOpacity={0.8}
-                                    onPress={() => setShowTimePicker(true)}
-                                    className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between"
-                                >
-                                    <Text className={`text-sm ${dueTime ? 'text-primary font-medium' : 'text-neutral'}`}>
-                                        {dueTime || 'Select Time'}
-                                    </Text>
-                                    <Clock size={18} color="#3F51B5" />
-                                </TouchableOpacity>
-                            </View>
+                    {/* Side-by-side Date & Time Selectors */}
+                    <View className="flex-row justify-between">
+                        {/* Due Date Button */}
+                        <View className="flex-1 mr-2">
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => setShowDatePicker(true)}
+                                className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between"
+                            >
+                                <Text className={`text-sm ${dueDate ? 'text-primary font-medium' : 'text-neutral'}`}>
+                                    {dueDate || 'Select Date'}
+                                </Text>
+                                <Calendar size={18} color="#3F51B5" />
+                            </TouchableOpacity>
                         </View>
 
-                        {/* Native Date Picker Modal */}
-                        {showDatePicker && (
-                            <DateTimePicker
-                                value={selectedDate || new Date()}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                minimumDate={new Date()}
-                                onValueChange={handleDateChange} // ✅ Standard prop is `onChange`, not `onValueChange`
-                            />
-                        )}
-
-                        {/* Native Time Picker Modal */}
-                        {showTimePicker && (
-                            <DateTimePicker
-                                value={selectedTime || new Date()}
-                                mode="time"
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                is24Hour={false}
-                                onValueChange={handleTimeChange} // ✅ Independent time handler
-                            />
-                        )}
+                        {/* Time Button */}
+                        <View className="flex-1 ml-2">
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => setShowTimePicker(true)}
+                                className="border border-gray-200 rounded-xl p-3.5 flex-row items-center justify-between"
+                            >
+                                <Text className={`text-sm ${dueTime ? 'text-primary font-medium' : 'text-neutral'}`}>
+                                    {dueTime || 'Select Time'}
+                                </Text>
+                                <Clock size={18} color="#3F51B5" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
-                    <View className="pt-3 border-t border-gray-100 flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3">
-                            <RefreshCw size={20} color="#3F51B5" />
-                            <View>
-                                <Text className="text-sm font-bold text-primary">
-                                    Sync to Google Calendar
-                                </Text>
-                                <Text className="text-xs text-neutral">
-                                    Block time automatically
-                                </Text>
-                            </View>
-                        </View>
-                        <Switch
-                            value={syncCalendar}
-                            onValueChange={setSyncCalendar}
-                            trackColor={{ false: '#E2E8F0', true: '#3F51B5' }}
-                            thumbColor="#FFFFFF"
+                    {/* Native Date Picker Modal */}
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={selectedDate || new Date()}
+                            mode="date"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            minimumDate={new Date()}
+                            onValueChange={handleDateChange}
                         />
-                    </View>
+                    )}
+
+                    {/* Native Time Picker Modal */}
+                    {showTimePicker && (
+                        <DateTimePicker
+                            value={selectedTime || new Date()}
+                            mode="time"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            is24Hour={false}
+                            onValueChange={handleTimeChange}
+                        />
+                    )}
                 </View>
 
-                {/* Course Pills */}
-                <View className="mt-4">
-                    <Text className="text-sm font-semibold text-slate-900 mb-2">Course</Text>
+                {/* Course Selection */}
+                <View className="mt-2 mb-6">
+                    <Text className="text-sm font-semibold text-slate-900 mb-2">Course Code</Text>
 
                     {isAddingCourse ? (
-                        /* Single-line text input for dynamic course creation */
                         <View className="flex-row items-center bg-white border border-primary rounded-2xl px-3 py-1.5 mt-1">
                             <TextInput
                                 className="flex-1 text-sm font-bold text-slate-900 py-1.5"
@@ -267,14 +243,13 @@ export default function CreateTaskScreen() {
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        /* Horizontal Course Pills + Plus Button */
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-1">
                             {courses.map((c) => {
                                 const isSelected = selectedCourse === c.id;
                                 return (
                                     <TouchableOpacity
                                         key={c.id}
-                                        onPress={() => setSelectedCourse(c.id)}
+                                        onPress={() => setSelectedCourse(isSelected ? '' : c.id)}
                                         activeOpacity={0.7}
                                         className={`flex-row items-center bg-white border rounded-2xl py-2 px-3.5 mr-2.5 min-w-[90px] ${isSelected ? 'border-primary bg-surface-light' : 'border-gray-200'
                                             }`}
@@ -287,7 +262,6 @@ export default function CreateTaskScreen() {
                                 );
                             })}
 
-                            {/* Plus Button to Trigger Input */}
                             <TouchableOpacity
                                 onPress={() => setIsAddingCourse(true)}
                                 className="w-11 h-11 rounded-full bg-surface-light items-center justify-center border border-gray-200"
@@ -298,7 +272,7 @@ export default function CreateTaskScreen() {
                     )}
                 </View>
 
-                {/* CTA Button */}
+                {/* Create Task Button */}
                 <TouchableOpacity
                     onPress={handleCreateTask}
                     activeOpacity={0.9}
@@ -310,6 +284,6 @@ export default function CreateTaskScreen() {
                     <Text className="text-white text-lg font-bold">Create Task</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </SafeAreaView >
+        </SafeAreaView>
     );
 }

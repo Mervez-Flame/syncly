@@ -20,8 +20,10 @@ export default function ProfileScreen() {
                     text: 'Log Out',
                     style: 'destructive',
                     onPress: async () => {
-                        await logout();
-                        router.replace('/onboarding');
+                        const success = await logout();
+                        if (success) {
+                            router.replace('/onboarding');
+                        }
                     },
                 },
             ]

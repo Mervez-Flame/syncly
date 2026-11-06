@@ -130,7 +130,7 @@ export default function OnboardingScreen() {
 
             if (res.ok) {
                 console.log("🟢 [7. AUTH SUCCESSFUL - NAVIGATING]");
-                await login(data.token, data.user);
+                await login(data);
                 router.replace('/dashboard');
             } else {
                 console.error("🔴 [5b. BACKEND REJECTED AUTH]:", data.error);
@@ -263,7 +263,7 @@ export default function OnboardingScreen() {
                                     <ActivityIndicator color="#EA4335" />
                                 ) : (
                                     <>
-                                        <Sparkles size={18} color="#EA4335" />
+
                                         <Text className="text-primary font-bold text-base">
                                             Sign in with Google
                                         </Text>
