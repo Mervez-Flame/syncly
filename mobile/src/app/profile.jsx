@@ -10,24 +10,38 @@ export default function ProfileScreen() {
     const router = useRouter();
     const { user, logout } = useAuth();
 
-    const handleLogout = () => {
-        Alert.alert(
-            'Log Out',
-            'Are you sure you want to log out of FocusFlow?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Log Out',
-                    style: 'destructive',
-                    onPress: async () => {
-                        const success = await logout();
-                        if (success) {
-                            router.replace('/onboarding');
-                        }
-                    },
-                },
-            ]
-        );
+    const handleLogout = async () => {
+        try {
+            console.log("Syncing pending tasks before clearing cache...");
+
+            // 1. Attempt to sync
+            // Ensure your syncPendingTasks function throws an error or returns false if it cannot reach the backend
+            const syncSuccessful = await syncPendingTasks();
+
+            if (!syncSuccessful) {
+                // 2. Abort logout and alert the user
+                Alert.alert(
+                    "Offline",
+                    "You have unsynced tasks and cannot reach the server. Logging out now would delete them. Please connect to the backend first.",
+                    [{ text: "OK" }]
+                );
+                console.warn("Logout aborted to prevent data loss.");
+                return; // Stops execution here. Cache is NOT cleared.
+            }
+
+            // 3. Safe to clear cache and log out
+            await clearLocalCache();
+            console.log("Logout complete. Session and cache cleared.");
+
+            // Proceed with navigation to the login screen...
+
+        } catch (error) {
+            console.error("Logout error:", error);
+            Alert.alert(
+                "Logout Failed",
+                "Could not verify sync status. Connect to the server and try again."
+            );
+        }
     };
 
     return (
