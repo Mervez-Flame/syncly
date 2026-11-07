@@ -17,7 +17,7 @@ function generateDeterministicEventId(userId, gmailMessageId) {
  */
 async function findMatchingEvent(auth, task, timezone) {
     const calendar = google.calendar({ version: 'v3', auth });
-    
+
     // Search window: +/- 1 day around the deadline
     const timeMin = new Date(task.dueDate.getTime() - 86400000).toISOString();
     const timeMax = new Date(task.dueDate.getTime() + 86400000).toISOString();
@@ -34,7 +34,7 @@ async function findMatchingEvent(auth, task, timezone) {
 
     const events = res.data.items || [];
     const match = events.find(e => e.summary === expectedTitle);
-    
+
     if (match) {
         return { eventId: match.id, htmlLink: match.htmlLink };
     }
@@ -46,7 +46,7 @@ async function findMatchingEvent(auth, task, timezone) {
  */
 async function createEvent(auth, task, timezone) {
     const calendar = google.calendar({ version: 'v3', auth });
-    
+
     const event = {
         summary: formatEventTitle(task),
         description: `${task.emailSubject}\n\nCreated by FocusFlow`,
@@ -69,16 +69,16 @@ async function createEvent(auth, task, timezone) {
     if (task.hasDueTime) {
         // Timed event: 30 minutes ending exactly at the deadline
         event.end = { dateTime: task.dueDate.toISOString(), timeZone: timezone };
-        event.start = { 
-            dateTime: new Date(task.dueDate.getTime() - 30 * 60000).toISOString(), 
-            timeZone: timezone 
+        event.start = {
+            dateTime: new Date(task.dueDate.getTime() - 30 * 60000).toISOString(),
+            timeZone: timezone
         };
     } else {
         // All-day event: start is the date, end is the next day
         const dateStr = task.dueDate.toISOString().slice(0, 10);
         const nextDayObj = new Date(task.dueDate.getTime() + 86400000);
         const nextDateStr = nextDayObj.toISOString().slice(0, 10);
-        
+
         event.start = { date: dateStr, timeZone: timezone };
         event.end = { date: nextDateStr, timeZone: timezone };
     }
@@ -88,11 +88,18 @@ async function createEvent(auth, task, timezone) {
             calendarId: 'primary',
             resource: event
         });
-        return { eventId: res.data.id, htmlLink: res.data.htmlLink };
+        return { eventId: res.data.id, htmlLink: res.data.htmlLink, alreadyExisted: false };
     } catch (error) {
         // 409 means the deterministic ID already exists
         if (error.response?.status === 409) {
-            return { eventId: event.id, htmlLink: null };
+            let htmlLink = null;
+            try {
+                const existing = await calendar.events.get({ calendarId: 'primary', eventId: event.id });
+                htmlLink = existing.data.htmlLink || null;
+            } catch (_) {
+                // the link is a nice to have, so don't fail the sync over it
+            }
+            return { eventId: event.id, htmlLink, alreadyExisted: true };
         }
         throw error;
     }
@@ -106,24 +113,39 @@ async function syncTaskToCalendar(auth, task, timezone = syncConfig.defaultTimez
         // 1. Check if it already exists by fuzzy matching (just in case ID changed)
         const existing = await findMatchingEvent(auth, task, timezone);
         if (existing) {
-            return { status: 'already_exists', calendarEventId: existing.eventId, error: null };
+            return {
+                status: 'already_exists',
+                calendarEventId: existing.eventId,
+                calendarEventLink: existing.htmlLink || null,
+                error: null
+            };
         }
 
         // 2. Create the event using retries for transient errors
         const result = await retry(
-            () => createEvent(auth, task, timezone), 
+            () => createEvent(auth, task, timezone),
             { attempts: syncConfig.calendarMaxRetries, baseDelayMs: 500 }
         );
 
-        // If htmlLink is missing but no error threw, it was a 409 Conflict (success via ID idempotency)
-        if (!result.htmlLink) {
-            return { status: 'already_exists', calendarEventId: result.eventId, error: null };
+        // 409 Conflict means success via ID idempotency
+        if (result.alreadyExisted) {
+            return {
+                status: 'already_exists',
+                calendarEventId: result.eventId,
+                calendarEventLink: result.htmlLink,
+                error: null
+            };
         }
 
-        return { status: 'synced', calendarEventId: result.eventId, error: null };
+        return {
+            status: 'synced',
+            calendarEventId: result.eventId,
+            calendarEventLink: result.htmlLink,
+            error: null
+        };
     } catch (error) {
         const errorMessage = error.response?.data?.error?.message || error.message || 'Unknown calendar error';
-        return { status: 'sync_failed', calendarEventId: null, error: errorMessage };
+        return { status: 'sync_failed', calendarEventId: null, calendarEventLink: null, error: errorMessage };
     }
 }
 

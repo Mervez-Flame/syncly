@@ -63,11 +63,11 @@ async function runEmailSync(userId, { timezone = syncConfig.defaultTimezone } = 
             try {
                 // 1. AI Extraction
                 const { task: rawTask } = await extractTaskFromEmail(email, { timezone });
-                console.log(`\n📧 Subject: ${email.subject}`);
-                console.log(`🤖 AI Decision:`, rawTask ? 'Task Found' : 'No Task');
-                if (!rawTask) {
-                    console.log(`📄 Body sent to AI (first 150 chars): ${email.body.substring(0, 150).replace(/\n/g, ' ')}`);
-                }
+                // console.log(`\n📧 Subject: ${email.subject}`);
+                // console.log(`🤖 AI Decision:`, rawTask ? 'Task Found' : 'No Task');
+                // if (!rawTask) {
+                //     console.log(`📄 Body sent to AI (first 150 chars): ${email.body.substring(0, 150).replace(/\n/g, ' ')}`);
+                // }
 
                 if (!rawTask) {
                     await ProcessedEmail.create({ userId, gmailMessageId: email.messageId, outcome: 'no_task' });
@@ -106,9 +106,9 @@ async function runEmailSync(userId, { timezone = syncConfig.defaultTimezone } = 
                 if (task.dueDate && task.status !== 'synced' && task.status !== 'already_exists') {
                     const calResult = await syncTaskToCalendar(auth, task, timezone);
                     finalOutcome = calResult.status;
-
                     task.status = calResult.status;
                     task.calendarEventId = calResult.calendarEventId;
+                    task.calendarEventLink = calResult.calendarEventLink; // new line
                     task.lastSyncError = calResult.error;
                     await task.save();
                 }
