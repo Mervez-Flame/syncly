@@ -25,14 +25,14 @@ export default function ScanEmailsButton({ onPress, status }) {
 const styles = StyleSheet.create({
     button: {
         flexDirection: 'row',
-        backgroundColor: '#007BFF',
+        backgroundColor: '#1A237E',
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
     disabled: {
-        backgroundColor: '#A0C4FF',
+        backgroundColor: '#8C93C9',
     },
     text: {
         color: '#fff',

@@ -1,52 +1,62 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto'; // Generates true UUIDs
+import * as Crypto from 'expo-crypto';
 import NetInfo from '@react-native-community/netinfo';
 import { processSyncQueue } from '../utils/offlineSync';
-import { useAuth } from './AuthContext'; // adjust relative path if needed
 
 const TaskContext = createContext();
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const TASKS_KEY = '@focusflow_tasks';
+
+async function getActiveToken() {
+    const sessionString = await AsyncStorage.getItem('@user_session');
+    const sessionData = sessionString ? JSON.parse(sessionString) : null;
+    return sessionData?.token || sessionData?.user?.token || null;
+}
+
+async function readStored() {
+    const stored = await AsyncStorage.getItem(TASKS_KEY);
+    return stored ? JSON.parse(stored) : [];
+}
+
 export function TaskProvider({ children }) {
     const [tasks, setTasks] = useState([]);
-    const API_URL = process.env.EXPO_PUBLIC_API_URL;
-    // const { user, token } = useAuth();
 
+    const reloadFromStorage = async () => {
+        setTasks(await readStored());
+    };
+
+    const syncNow = async () => {
+        try {
+            const activeToken = await getActiveToken();
+            console.log('Token for sync:', activeToken ? 'Found ✅' : 'Missing ❌');
+            if (!activeToken) return false;
+
+            const didSync = await processSyncQueue(API_URL, activeToken);
+            if (didSync) await reloadFromStorage();
+            return !!didSync;
+        } catch (error) {
+            console.log('syncNow failed, will retry on next network event:', error);
+            return false;
+        }
+    };
+
+    // Sync (push + pull) when the app opens or the phone regains internet
     useEffect(() => {
-        // Automatically run sync when the phone regains internet
-        const unsubscribe = NetInfo.addEventListener(async (state) => {
-            if (state.isConnected) {
-                // Pass your Express URL and Auth Token
-                // console.log('Auth Debug -> Token variable:', token);
-                // console.log('Auth Debug -> User object token:', user?.token);
-                const sessionString = await AsyncStorage.getItem('@user_session');
-                const sessionData = sessionString ? JSON.parse(sessionString) : null;
-
-                // Extract the token safely from the session object structure
-                const activeToken = sessionData?.token || sessionData?.user?.token;
-
-                console.log('Retrieved token from storage for sync:', activeToken ? 'Token Found ✅' : 'Token Missing ❌');
-                const didSync = await processSyncQueue(API_URL, activeToken);
-
-                if (didSync) {
-                    // Force the context to re-read the newly synced array from storage
-                    const updatedStorage = await AsyncStorage.getItem('@focusflow_tasks');
-                    if (updatedStorage) setTasks(JSON.parse(updatedStorage));
-                }
-            }
+        const unsubscribe = NetInfo.addEventListener((state) => {
+            if (state.isConnected) syncNow();
         });
         return () => unsubscribe();
     }, []);
 
+    // Load tasks saved on the phone
     useEffect(() => {
         async function loadTasks() {
             try {
-                const stored = await AsyncStorage.getItem('@focusflow_tasks');
-                if (stored) {
-                    setTasks(JSON.parse(stored));
-                }
+                await reloadFromStorage();
             } catch (error) {
-                console.error("Failed to load tasks from local storage", error);
+                console.error('Failed to load tasks from local storage', error);
             }
         }
         loadTasks();
@@ -55,10 +65,23 @@ export function TaskProvider({ children }) {
     const saveTasks = async (updated) => {
         setTasks(updated);
         try {
-            await AsyncStorage.setItem('@focusflow_tasks', JSON.stringify(updated));
+            await AsyncStorage.setItem(TASKS_KEY, JSON.stringify(updated));
         } catch (error) {
-            console.error("Failed to save tasks locally", error);
+            console.error('Failed to save tasks locally', error);
         }
+    };
+
+    const nextSyncState = (t) =>
+        t.syncState === 'pending_create' ? 'pending_create' : 'pending_update';
+
+    // Change one task using the freshest stored data, save, then sync in the background
+    const mutateTask = async (id, changeFn) => {
+        const current = await readStored();
+        const updated = current.map((t) =>
+            t.localTaskId === id || t._id === id ? changeFn(t) : t
+        );
+        await saveTasks(updated);
+        syncNow();
     };
 
     const addTask = async (newTaskData) => {
@@ -78,89 +101,63 @@ export function TaskProvider({ children }) {
             updatedAt: new Date().toISOString(),
         };
 
-        const updatedTasks = [taskObj, ...tasks];
-        // Save locally first for instant UI responsiveness
-        await saveTasks(updatedTasks);
+        const current = await readStored();
+        await saveTasks([taskObj, ...current]);
+        syncNow();
+    };
 
-        // Immediately trigger backend synchronization queue
+    const updateTask = (id, updatedFields) =>
+        mutateTask(id, (t) => ({
+            ...t,
+            ...updatedFields,
+            syncState: nextSyncState(t),
+            updatedAt: new Date().toISOString(),
+        }));
+
+    const toggleTask = (id) =>
+        mutateTask(id, (t) => ({
+            ...t,
+            isCompleted: !t.isCompleted,
+            syncState: nextSyncState(t),
+            updatedAt: new Date().toISOString(),
+        }));
+
+    const deleteTask = (id) =>
+        mutateTask(id, (t) => ({
+            ...t,
+            isDeleted: true,
+            syncState: 'pending_delete',
+            updatedAt: new Date().toISOString(),
+        }));
+
+    // Used by the Scan button after a sync finishes
+    const refreshTasks = async () => {
         try {
-            // console.log('Auth Debug -> Token variable:', token);
-            // console.log('Auth Debug -> User object token:', user?.token);
-            // Fetch the session directly from AsyncStorage where login stored it
-            const sessionString = await AsyncStorage.getItem('@user_session');
-            const sessionData = sessionString ? JSON.parse(sessionString) : null;
+            const activeToken = await getActiveToken();
+            if (!activeToken) return false;
 
-            // Extract the token safely from the session object structure
-            const activeToken = sessionData?.token || sessionData?.user?.token;
-
-            console.log('Retrieved token from storage for sync:', activeToken ? 'Token Found ✅' : 'Token Missing ❌');
             await processSyncQueue(API_URL, activeToken);
+            await reloadFromStorage();
+            return true;
         } catch (error) {
-            console.log('Background sync triggered post-save failed, queued for next network event:', error);
+            console.log('refreshTasks failed:', error);
+            return false;
         }
     };
 
-    const updateTask = (id, updatedFields) => {
-        const updated = tasks.map((t) => {
-            if (t.localTaskId === id || t._id === id) {
-                return {
-                    ...t,
-                    ...updatedFields,
-                    // If it hasn't been created on the server yet, keep it as pending_create
-                    syncState: t.syncState === 'pending_create' ? 'pending_create' : 'pending_update',
-                    updatedAt: new Date().toISOString()
-                };
-            }
-            return t;
-        });
-        saveTasks(updated);
-    };
-
-    const toggleTask = (id) => {
-        const updated = tasks.map((t) => {
-            if (t.localTaskId === id || t._id === id) {
-                return {
-                    ...t,
-                    isCompleted: !t.isCompleted,
-                    syncState: t.syncState === 'pending_create' ? 'pending_create' : 'pending_update',
-                    updatedAt: new Date().toISOString()
-                };
-            }
-            return t;
-        });
-        saveTasks(updated);
-    };
-
-    const deleteTask = (id) => {
-        const updated = tasks.map((t) => {
-            if (t.localTaskId === id || t._id === id) {
-                return {
-                    ...t,
-                    isDeleted: true, // Soft deletion
-                    syncState: 'pending_delete', // Tells offlineSync to DELETE this
-                    updatedAt: new Date().toISOString()
-                };
-            }
-            return t;
-        });
-        saveTasks(updated);
-    };
-
-    // Helper functions for the UI
     const getTaskById = (id) => tasks.find((t) => t.localTaskId === id || t._id === id);
-
-    // The UI should only render tasks that aren't soft-deleted
     const getActiveTasks = () => tasks.filter((t) => !t.isDeleted);
 
     return (
         <TaskContext.Provider value={{
             tasks,
-            activeTasks: getActiveTasks(), // Use this in your FlatList/Dashboard
+            activeTasks: getActiveTasks(),
             toggleTask,
             addTask,
             updateTask,
             deleteTask,
-            getTaskById
+            getTaskById,
+            refreshTasks,
         }}>
             {children}
         </TaskContext.Provider>

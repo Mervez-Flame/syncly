@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { runFullSync } from '../services/syncApi';
+import { runFullSync } from '../utils/syncApi';
 
 export function useEmailSync(token, refreshTasks) {
     const [status, setStatus] = useState('idle'); // idle | syncing | done | error
