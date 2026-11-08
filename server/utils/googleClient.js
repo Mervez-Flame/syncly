@@ -50,8 +50,7 @@ async function getAuthedClient(userId) {
     );
     client.setCredentials({ refresh_token: refreshToken });
 
-    // Force the token refresh NOW instead of on the first API call, so a dead
-    // token is caught here, once, and not halfway through a batch of emails.
+    // Force the token refresh NOW instead of on the first API call, so a dead token is caught here, once, and not halfway through a batch of emails.
     try {
         await client.getAccessToken();
     } catch (err) {

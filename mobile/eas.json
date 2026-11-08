@@ -8,12 +8,15 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.1.23:5000",
+        "EXPO_PUBLIC_API_URL": "https://focusflow-c4si.onrender.com",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "245634584168-8laqgk57edrjv65p9g220vq9n62rnaho.apps.googleusercontent.com"
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "autoIncrement": true
