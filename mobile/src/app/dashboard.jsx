@@ -54,7 +54,7 @@ export default function DashboardScreen() {
     });
 
     return (
-        <SafeAreaView className="flex-1 bg-[#1b4f84]">
+        <SafeAreaView className="flex-1 bg-[#d5d1df]">
             <View className="flex-1 relative">
                 <ScrollView
                     showsVerticalScrollIndicator={false}

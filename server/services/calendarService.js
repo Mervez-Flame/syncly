@@ -1,3 +1,4 @@
+
 // server/services/calendarService.js
 const { google } = require('googleapis');
 const crypto = require('crypto');
@@ -95,9 +96,20 @@ async function createEvent(auth, task, timezone) {
             let htmlLink = null;
             try {
                 const existing = await calendar.events.get({ calendarId: 'primary', eventId: event.id });
+
+                // If the event was deleted/trashed, patch or re-insert it
+                if (existing.data.status === 'cancelled') {
+                    const patched = await calendar.events.patch({
+                        calendarId: 'primary',
+                        eventId: event.id,
+                        resource: { ...event, status: 'confirmed' }
+                    });
+                    return { eventId: patched.data.id, htmlLink: patched.data.htmlLink, alreadyExisted: false };
+                }
+
                 htmlLink = existing.data.htmlLink || null;
             } catch (_) {
-                // the link is a nice to have, so don't fail the sync over it
+                // Ignore fallback lookup errors
             }
             return { eventId: event.id, htmlLink, alreadyExisted: true };
         }

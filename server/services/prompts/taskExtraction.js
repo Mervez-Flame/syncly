@@ -56,7 +56,7 @@ EMAIL CONTEXT:
 ${calendar}
 
 RULES:
-1. WHAT COUNTS AS A TASK: Assignments, projects, homework, exams, tests, and quizzes. Invitations, newsletters, announcements, results, and simple replies do NOT count as tasks.
+1. WHAT COUNTS AS A TASK: Academic assignments, projects, homework, lab reports, readings, essays, exams, tests, quizzes, and official academic or administrative student deadlines (such as enrolment, course registration, tuition payment, fee deadlines, and clearance). Invitations, newsletters, general campus promotional announcements, grade releases, and simple conversational replies do NOT count as tasks.
 2. DATES: 'this Friday' is the first Friday on or after the received date. 'next Friday' is that weekday in the following calendar week. Look up dates in the provided Calendar Reference rather than calculating them. Dates that are not deadlines are ignored.
 3. NO DEADLINE: If no deadline is given, dueDate and dueTime MUST be null. Do not invent a date.
 4. EXTENDED DEADLINE: Always use the NEW, extended date if one is provided.
