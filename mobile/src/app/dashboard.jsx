@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
-import { Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Bell, Mail, Clock, Plus, User, FileText, Check } from 'lucide-react-native';
@@ -16,16 +16,25 @@ const getSourceType = (task) => {
     return src === 'manual' ? 'manual' : 'email';
 };
 
-const formatDue = (iso) => {
-    if (!iso) return 'Not Specified';
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return String(iso);
-    return d.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+const formatDue = (task) => {
+    if (!task.dueDate) return 'Not Specified';
+    const d = new Date(task.dueDate);
+    if (isNaN(d.getTime())) return String(task.dueDate);
+    // Date-only email tasks are stored at noon UTC, so do not show a clock time for them
+    const dateOnly = task.source === 'ai' && !task.hasDueTime;
+    return d.toLocaleString('en-US', dateOnly
+        ? { month: 'short', day: 'numeric' }
+        : { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+};
+
+const isOverdue = (task, now = new Date()) => {
+    if (!task?.dueDate || task.isCompleted) return false;
+    const due = new Date(task.dueDate);
+    if (isNaN(due.getTime())) return false;
+    if (task.hasDueTime) return due < now;              // timed: overdue once the time has passed
+    const pad = (n) => String(n).padStart(2, '0');
+    const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return ymd(due) < ymd(now);                         // date only: overdue once the day has passed
 };
 
 export default function DashboardScreen() {
@@ -45,7 +54,7 @@ export default function DashboardScreen() {
     });
 
     return (
-        <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+        <SafeAreaView className="flex-1 bg-[#1b4f84]">
             <View className="flex-1 relative">
                 <ScrollView
                     showsVerticalScrollIndicator={false}
@@ -119,7 +128,8 @@ export default function DashboardScreen() {
                             const courseDisplay = task.courseCode || 'GENERAL';
                             const sourceType = getSourceType(task);
                             const sourceLabel = sourceType === 'email' ? 'Auto Ingested' : 'User Created';
-                            const displayDeadline = formatDue(task.dueDate);
+                            const displayDeadline = formatDue(task);
+                            const overdue = isOverdue(task);
 
                             return (
                                 <TouchableOpacity
@@ -170,7 +180,11 @@ export default function DashboardScreen() {
                                             <Text className="text-xs text-neutral font-medium">
                                                 {displayDeadline === 'Not Specified' ? 'Not Specified' : `Due ${displayDeadline}`}
                                             </Text>
+                                            {overdue && <Text className="text-xs font-bold text-red-600">  Overdue</Text>}
                                         </View>
+                                        {task.status === 'sync_failed' && (
+                                            <Text className="text-xs font-bold text-amber-600 mt-1">Not added to Google Calendar yet</Text>
+                                        )}
                                     </View>
                                 </TouchableOpacity>
                             );

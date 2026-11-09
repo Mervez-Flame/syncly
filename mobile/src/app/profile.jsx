@@ -15,47 +15,8 @@ export default function ProfileScreen() {
     const { tasks, refreshTasks } = useTasks(); // Pull in tasks and the refresh function from context
 
     const handleLogout = async () => {
-        try {
-            console.log("Verifying sync status before clearing cache...");
-
-            // 1. Look for any tasks that haven't been pushed to the server yet
-            const hasPendingTasks = tasks.some(t => t.syncState && t.syncState !== 'synced');
-
-            if (hasPendingTasks) {
-                // Check internet connection
-                const networkState = await NetInfo.fetch();
-
-                if (!networkState.isConnected) {
-                    // Abort logout and alert the user to prevent data loss
-                    Alert.alert(
-                        "Offline",
-                        "You have unsynced tasks and cannot reach the server. Logging out now would delete them. Please connect to the internet first.",
-                        [{ text: "OK" }]
-                    );
-                    console.warn("Logout aborted to prevent data loss.");
-                    return; // Stops execution here
-                }
-
-                // If online, force the sync before logging out
-                console.log("Pushing pending tasks to server...");
-                await refreshTasks();
-            }
-
-            // 2. Safe to clear cache and log out
-            await AsyncStorage.clear();
-            console.log("Cache cleared.");
-
-            await logout(); // Trigger your AuthContext logout to clear the session and navigate
-            console.log("Logout complete.");
-            router.replace('/onboarding');
-
-        } catch (error) {
-            console.error("Logout error:", error);
-            Alert.alert(
-                "Logout Failed",
-                "Could not verify sync status. Connect to the server and try again."
-            );
-        }
+        const ok = await logout();
+        if (ok) router.replace('/onboarding');
     };
 
     return (

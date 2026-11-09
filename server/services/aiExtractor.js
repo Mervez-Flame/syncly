@@ -9,11 +9,12 @@ const openai = new OpenAI({
 });
 
 class ExtractionError extends Error {
-    constructor(message, originalError, isFatal = false) {
+    constructor(message, originalError, isFatal = false, isPermanent = false) {
         super(message);
         this.name = 'ExtractionError';
         this.originalError = originalError;
         this.isFatal = isFatal;
+        this.isPermanent = isPermanent; // the same email will always fail, so do not retry it
         this.status = originalError?.status;
     }
 }
@@ -81,14 +82,14 @@ async function extractTaskFromEmail(email, { timezone = syncConfig.defaultTimezo
         const choice = response.choices[0];
 
         if (choice.finish_reason === 'length') {
-            throw new Error('LLM max tokens exceeded (length constraint)');
+            throw new ExtractionError('LLM max tokens exceeded (length constraint)', null, false, true);
         }
 
         let parsedResult;
         try {
             parsedResult = JSON.parse(choice.message.content);
         } catch (err) {
-            throw new Error('Unparseable JSON returned by model');
+            throw new ExtractionError('Unparseable JSON returned by model', err, false, true);
         }
 
         const latencyMs = Date.now() - startTime;

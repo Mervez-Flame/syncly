@@ -103,11 +103,23 @@ function extractBody(payload) {
         text = htmlToPlainText(parts.html.join('\n'));
     }
 
+
+    // --- TEMPORARY LOGGING FOR THESIS FIGURE 4.4 ---
+    // Capture the raw text/html before normalization and stripping
+    const rawUncleanedText = text;
     text = normalizeWhitespace(replaceLinks(stripQuotedReply(normalizeWhitespace(text))));
 
     const truncated = text.length > MAX_BODY_CHARS;
     if (truncated) text = text.slice(0, MAX_BODY_CHARS).trimEnd();
 
+
+
+    // --- TEMPORARY LOGGING FOR THESIS FIGURE 4.4 ---
+    console.log("\n==================== FIGURE 4.4 ARTIFACT ====================");
+    console.log("--- [ORIGINAL RAW TEXT/HTML EXTRACTED] ---\n", rawUncleanedText);
+    console.log("\n--- [FINAL CLEANED BODY PASSED TO LLM] ---\n", text);
+    console.log("=============================================================\n");
+    // -----------------------------------------------
     return { body: text, truncated };
 }
 

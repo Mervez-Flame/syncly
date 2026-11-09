@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import NetInfo from '@react-native-community/netinfo';
 import { processSyncQueue } from '../utils/offlineSync';
+import { useAuth } from './AuthContext';
 
 const TaskContext = createContext();
 
@@ -21,7 +22,9 @@ async function readStored() {
 }
 
 export function TaskProvider({ children }) {
+    const { user } = useAuth();
     const [tasks, setTasks] = useState([]);
+    const userKey = user ? String(user._id || user.id || user.email || '') : null;
 
     const reloadFromStorage = async () => {
         setTasks(await readStored());
@@ -51,16 +54,21 @@ export function TaskProvider({ children }) {
     }, []);
 
     // Load tasks saved on the phone
+    // Reload and sync whenever the signed-in account changes, so one student never sees another's tasks
     useEffect(() => {
-        async function loadTasks() {
+        (async () => {
+            if (!userKey) {
+                setTasks([]);          // signed out: show nothing
+                return;
+            }
             try {
                 await reloadFromStorage();
+                syncNow();
             } catch (error) {
                 console.error('Failed to load tasks from local storage', error);
             }
-        }
-        loadTasks();
-    }, []);
+        })();
+    }, [userKey]);
 
     const saveTasks = async (updated) => {
         setTasks(updated);

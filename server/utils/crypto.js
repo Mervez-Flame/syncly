@@ -2,7 +2,12 @@ const crypto = require('crypto');
 
 const ALGORITHM = 'aes-256-cbc';
 // Derives a key of exactly 32 bytes from environment secret
-const KEY = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'fallback_secret_key', 'salt', 32);
+// const KEY = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'fallback_secret_key', 'salt', 32);
+const KEY = crypto.scryptSync(process.env.ENCRYPTION_KEY, 'salt', 32);
+
+if (!process.env.ENCRYPTION_KEY) {
+    throw new Error('ENCRYPTION_KEY is not set');
+}
 
 function encrypt(text) {
     const iv = crypto.randomBytes(16); // Initialization Vector for randomness

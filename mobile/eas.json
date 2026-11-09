@@ -8,18 +8,27 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://focusflow-c4si.onrender.com",
+        "EXPO_PUBLIC_API_URL": "http://192.168.3.11:5000",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "245634584168-8laqgk57edrjv65p9g220vq9n62rnaho.apps.googleusercontent.com"
       }
     },
     "preview": {
       "distribution": "internal",
+      // "channel": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://focusflow-c4si.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "245634584168-8laqgk57edrjv65p9g220vq9n62rnaho.apps.googleusercontent.com"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://focusflow-c4si.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "245634584168-8laqgk57edrjv65p9g220vq9n62rnaho.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {

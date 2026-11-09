@@ -20,6 +20,12 @@ const fromServer = (s) => ({
     syncState: 'synced',
 });
 
+const currentSessionToken = async () => {
+    const s = await AsyncStorage.getItem('@user_session');
+    const session = s ? JSON.parse(s) : null;
+    return session?.token || session?.user?.token || null;
+};
+
 // Combine the phone's tasks with the server's list
 function mergeServerTasks(localTasks, serverTasks) {
     const merged = [];
@@ -101,7 +107,8 @@ async function runSyncOnce(baseUrl, userToken) {
             } else if (t.syncState === 'pending_update') {
                 const targetId = t._id || t.localTaskId;
                 // Calendar-synced tasks are locked on the server except for completion
-                const body = t.calendarEventId
+                // Email tasks and calendar-synced tasks are locked on the server except for completion
+                const body = (t.source === 'ai' || t.calendarEventId)
                     ? { isCompleted: t.isCompleted }
                     : {
                         title: t.title,
@@ -176,8 +183,8 @@ async function runSyncOnce(baseUrl, userToken) {
                 syncState: untouched
                     ? 'synced'
                     : cur.syncState === 'pending_create'
-                    ? 'pending_update'
-                    : cur.syncState,
+                        ? 'pending_update'
+                        : cur.syncState,
             };
         } else {
             tasks[i] = { ...cur, syncState: untouched ? 'synced' : cur.syncState };
@@ -190,37 +197,39 @@ async function runSyncOnce(baseUrl, userToken) {
     }
 
     if (JSON.stringify(tasks) !== freshJson) {
+        // The student may have signed out or switched account while the requests were running
+        if ((await currentSessionToken()) !== userToken) return false;
         await AsyncStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
         return true;
     }
     return false;
 }
 
-/**
- * Pushes pending changes, then pulls the server's tasks.
- * Returns true if local storage changed (so the UI should re-read it).
- */
-export const processSyncQueue = async (apiBaseUrl, userToken) => {
-    if (isSyncing) {
-        rerunRequested = true;
-        return false;
-    }
+    /**
+     * Pushes pending changes, then pulls the server's tasks.
+     * Returns true if local storage changed (so the UI should re-read it).
+     */
+    export const processSyncQueue = async (apiBaseUrl, userToken) => {
+        if (isSyncing) {
+            rerunRequested = true;
+            return false;
+        }
 
-    const baseUrl = apiBaseUrl || DEFAULT_API_URL;
-    isSyncing = true;
-    let changed = false;
+        const baseUrl = apiBaseUrl || DEFAULT_API_URL;
+        isSyncing = true;
+        let changed = false;
 
-    try {
-        do {
-            rerunRequested = false;
-            const didChange = await runSyncOnce(baseUrl, userToken);
-            changed = changed || didChange;
-        } while (rerunRequested);
-    } catch (error) {
-        console.error('Failed to process offline queue:', error);
-    } finally {
-        isSyncing = false;
-    }
+        try {
+            do {
+                rerunRequested = false;
+                const didChange = await runSyncOnce(baseUrl, userToken);
+                changed = changed || didChange;
+            } while (rerunRequested);
+        } catch (error) {
+            console.error('Failed to process offline queue:', error);
+        } finally {
+            isSyncing = false;
+        }
 
-    return changed;
-};
+        return changed;
+    };

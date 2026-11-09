@@ -90,10 +90,12 @@ export default function CreateTaskScreen() {
         let finalDueDate = null;
         if (dueDate) {
             const combined = new Date(selectedDate);
-            combined.setHours(selectedTime.getHours());
-            combined.setMinutes(selectedTime.getMinutes());
-            combined.setSeconds(0);
-            combined.setMilliseconds(0);
+            if (dueTime) {
+                combined.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+            } else {
+                combined.setHours(12, 0, 0, 0); // no time chosen: use midday so the date does not shift
+            }
+            finalDueDate = combined.toISOString();
             finalDueDate = combined.toISOString();
         }
 

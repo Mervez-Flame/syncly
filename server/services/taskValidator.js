@@ -15,12 +15,10 @@ function normalizeCourseCode(code) {
 /**
  * Checks if the deadline is strictly before the received date (comparing calendar days).
  */
-function isDateInPast(dateStr, receivedAtStr) {
-    const deadlineDay = dateStr.slice(0, 10);
-    const receivedDay = new Date(receivedAtStr).toISOString().slice(0, 10);
-    return deadlineDay < receivedDay;
+function isRealDate(dateStr) {
+    const d = new Date(`${dateStr}T12:00:00.000Z`);
+    return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === dateStr;
 }
-
 /**
  * Converts a YYYY-MM-DD and optional HH:MM into a UTC Date object.
  * As per Section 4 conventions:
@@ -82,8 +80,8 @@ function validateExtractedTask(rawTask, { emailReceivedAt, timezone }) {
 
     // Validate date format (YYYY-MM-DD)
     if (rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
-        if (isDateInPast(rawDate, emailReceivedAt)) {
-            notes.push('due_date_dropped:in_past');
+        if (!isRealDate(rawDate)) {
+            notes.push('due_date_dropped:unparseable');
         } else {
             dueDate = createDeadlineDate(rawDate, rawTime, hasDueTime, timezone);
             if (!dueDate) notes.push('due_date_dropped:unparseable');

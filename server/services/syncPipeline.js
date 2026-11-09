@@ -40,11 +40,34 @@ async function runEmailSync(userId, { timezone = syncConfig.defaultTimezone } = 
         syncFailed: 0,
         aiErrors: 0,
         remaining: 0,
-        durationMs: 0
+        durationMs: 0,
+        retried: 0,
     };
 
     try {
         const auth = await getAuthedClient(userId);
+        // Retry earlier failures first (no Gmail or AI call needed)
+        const stuckTasks = await Task.find({
+            userId,
+            source: 'ai',
+            isDeleted: false,
+            status: { $in: ['sync_failed', 'pending_sync'] },
+            dueDate: { $ne: null }
+        });
+
+        for (const stuck of stuckTasks) {
+            const calResult = await syncTaskToCalendar(auth, stuck, timezone);
+            stuck.status = calResult.status;
+            stuck.calendarEventId = calResult.calendarEventId;
+            stuck.calendarEventLink = calResult.calendarEventLink;
+            stuck.lastSyncError = calResult.error;
+            await stuck.save();
+            await ProcessedEmail.updateOne(
+                { userId, gmailMessageId: stuck.gmailMessageId },
+                { outcome: calResult.status }
+            );
+            summary.retried++;
+        }
         const { emails, remaining } = await fetchUnprocessedEmails(auth, userId);
 
         summary.remaining = remaining;
@@ -63,11 +86,6 @@ async function runEmailSync(userId, { timezone = syncConfig.defaultTimezone } = 
             try {
                 // 1. AI Extraction
                 const { task: rawTask } = await extractTaskFromEmail(email, { timezone });
-                // console.log(`\n📧 Subject: ${email.subject}`);
-                // console.log(`🤖 AI Decision:`, rawTask ? 'Task Found' : 'No Task');
-                // if (!rawTask) {
-                //     console.log(`📄 Body sent to AI (first 150 chars): ${email.body.substring(0, 150).replace(/\n/g, ' ')}`);
-                // }
 
                 if (!rawTask) {
                     await ProcessedEmail.create({ userId, gmailMessageId: email.messageId, outcome: 'no_task' });
@@ -118,7 +136,7 @@ async function runEmailSync(userId, { timezone = syncConfig.defaultTimezone } = 
                 return finalOutcome;
 
             } catch (error) {
-                console.error(`\n❌ [DB Error on "${email.subject}"]:`, error.message);
+                console.error(`\n❌ [Pipeline error on email ${email.messageId}]:`, error.message);
 
                 // 11000 is MongoDB's duplicate key error (meaning another thread got here first)
                 if (error.code === 11000) {
@@ -135,6 +153,14 @@ async function runEmailSync(userId, { timezone = syncConfig.defaultTimezone } = 
                     throw error;
                 }
 
+                if (error instanceof ExtractionError && error.isPermanent) {
+                    await ProcessedEmail.updateOne(
+                        { userId, gmailMessageId: email.messageId },
+                        { $setOnInsert: { outcome: 'invalid' } },
+                        { upsert: true }
+                    );
+                    return 'invalid';
+                }
                 // Count non-fatal AI timeouts/errors so they can be retried on the next scan
                 return 'ai_error';
             }

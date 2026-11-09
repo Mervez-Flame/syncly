@@ -16,7 +16,8 @@ export default function EditTaskScreen() {
     const currentTask = getTaskById(taskId);
 
     // Determines if the task is an AI-extracted calendar event (Read-Only)
-    const isSyncedEvent = !!currentTask?.calendarEventId;
+    const isSyncedEvent = !!currentTask?.calendarEventId;             // has a Google Calendar event
+    const isReadOnly = isSyncedEvent || currentTask?.source === 'ai'; // email tasks cannot be edited
 
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -116,10 +117,11 @@ export default function EditTaskScreen() {
         let finalDueDate = null;
         if (dueDate) {
             const combined = new Date(dateValue);
-            combined.setHours(timeValue.getHours());
-            combined.setMinutes(timeValue.getMinutes());
-            combined.setSeconds(0);
-            combined.setMilliseconds(0);
+            if (dueTime) {
+                combined.setHours(timeValue.getHours(), timeValue.getMinutes(), 0, 0);
+            } else {
+                combined.setHours(12, 0, 0, 0); // no time chosen: use midday so the date does not shift
+            }
             finalDueDate = combined.toISOString();
         }
 
@@ -185,13 +187,17 @@ export default function EditTaskScreen() {
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
                 {/* AI Task Read-Only Warning */}
-                {isSyncedEvent && (
-                    <View className="bg-orange-50 border border-orange-200 rounded-xl p-4 mt-4 flex-row items-start">
+                {isReadOnly && (
+                    <View className="bg-orange-50 border border-orange-200 rounded-xl py-4 px-6 mt-4 flex-row items-start gap-x-1">
                         <Info size={20} color="#E65100" className="mt-0.5" />
-                        <View className="flex-1 ml-3">
-                            <Text className="text-sm font-bold text-orange-900">Synchronized Event</Text>
+                        <View className="">
+                            <Text className="text-sm font-bold text-orange-900">
+                                {isSyncedEvent ? 'Synchronized Event' : 'Email Task'}
+                            </Text>
                             <Text className="text-sm text-orange-800 mt-1 leading-5">
-                                This task was automatically scheduled. To edit details or delete it, please tap the task from your Dashboard to open the Google Calendar web view.
+                                {isSyncedEvent
+                                    ? 'This task was scheduled automatically. Tap it on the Calendar page to open it in Google Calendar, where you can edit or delete it.'
+                                    : 'This task was created from an email, so its details cannot be edited. You can still mark it as completed from the Dashboard, or delete it.'}
                             </Text>
                         </View>
                     </View>
@@ -201,12 +207,12 @@ export default function EditTaskScreen() {
                 <View className="mt-4">
                     <Text className="text-sm font-semibold text-slate-900 mb-2">Task Title</Text>
                     <TextInput
-                        className={`border rounded-xl px-4 py-3 text-base ${isSyncedEvent ? 'bg-gray-100 border-gray-200 text-gray-500' : 'bg-white border-gray-200 text-slate-900'}`}
+                        className={`border rounded-xl px-4 py-3 text-base ${isReadOnly ? 'bg-gray-100 border-gray-200 text-gray-500' : 'bg-white border-gray-200 text-slate-900'}`}
                         value={title}
                         onChangeText={setTitle}
                         placeholder="Enter task title"
                         placeholderTextColor="#77767D"
-                        editable={!isSyncedEvent}
+                        editable={!isReadOnly}
                     />
                 </View>
 
@@ -214,7 +220,7 @@ export default function EditTaskScreen() {
                 <View className="mt-4">
                     <Text className="text-sm font-semibold text-slate-900 mb-2">Course</Text>
 
-                    {isAddingCourse && !isSyncedEvent ? (
+                    {isAddingCourse && !isReadOnly ? (
                         <View className="flex-row items-center bg-white border border-primary rounded-2xl px-3 py-1.5 mt-1">
                             <TextInput
                                 className="flex-1 text-sm font-bold text-slate-900 py-1.5"
@@ -249,21 +255,21 @@ export default function EditTaskScreen() {
                                 return (
                                     <TouchableOpacity
                                         key={c.id}
-                                        onPress={() => !isSyncedEvent && setSelectedCourse(isSelected ? '' : c.id)}
-                                        activeOpacity={isSyncedEvent ? 1 : 0.7}
-                                        className={`flex-row items-center border rounded-2xl py-2 px-3.5 mr-2.5 min-w-[90px] ${isSyncedEvent ? 'bg-gray-100 border-gray-200' :
-                                                isSelected ? 'border-primary bg-surface-light' : 'bg-white border-gray-200'
+                                        onPress={() => !isReadOnly && setSelectedCourse(isSelected ? '' : c.id)}
+                                        activeOpacity={isReadOnly ? 1 : 0.7}
+                                        className={`flex-row items-center border rounded-2xl py-2 px-3.5 mr-2.5 min-w-[90px] ${isReadOnly ? 'bg-gray-100 border-gray-200' :
+                                            isSelected ? 'border-primary bg-surface-light' : 'bg-white border-gray-200'
                                             }`}
                                     >
-                                        <View className={`w-1.5 h-6 rounded-sm mr-2 ${isSyncedEvent ? 'bg-gray-400' : ''}`} style={!isSyncedEvent ? { backgroundColor: c.color } : {}} />
-                                        <Text className={`text-sm font-bold ${isSyncedEvent ? 'text-gray-500' : isSelected ? 'text-primary' : 'text-slate-900'}`}>
+                                        <View className={`w-1.5 h-6 rounded-sm mr-2 ${isReadOnly ? 'bg-gray-400' : ''}`} style={!isReadOnly ? { backgroundColor: c.color } : {}} />
+                                        <Text className={`text-sm font-bold ${isReadOnly ? 'text-gray-500' : isSelected ? 'text-primary' : 'text-slate-900'}`}>
                                             {c.code}
                                         </Text>
                                     </TouchableOpacity>
                                 );
                             })}
 
-                            {!isSyncedEvent && (
+                            {!isReadOnly && (
                                 <TouchableOpacity
                                     onPress={() => setIsAddingCourse(true)}
                                     className="w-11 h-11 rounded-full bg-surface-light items-center justify-center border border-gray-200"
@@ -280,12 +286,12 @@ export default function EditTaskScreen() {
                     <View className="flex-1 mr-2">
                         <Text className="text-sm font-semibold text-slate-900 mb-2">Due Date</Text>
                         <TouchableOpacity
-                            className={`flex-row items-center border rounded-xl px-3.5 py-3 ${isSyncedEvent ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-200'}`}
-                            onPress={() => !isSyncedEvent && setShowDatePicker(true)}
-                            activeOpacity={isSyncedEvent ? 1 : 0.7}
+                            className={`flex-row items-center border rounded-xl px-3.5 py-3 ${isReadOnly ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-200'}`}
+                            onPress={() => !isReadOnly && setShowDatePicker(true)}
+                            activeOpacity={isReadOnly ? 1 : 0.7}
                         >
-                            <Calendar size={18} color={isSyncedEvent ? "#9CA3AF" : "#1A237E"} />
-                            <Text className={`text-sm font-medium ml-2 ${isSyncedEvent ? 'text-gray-500' : 'text-slate-900'}`}>
+                            <Calendar size={18} color={isReadOnly ? "#9CA3AF" : "#1A237E"} />
+                            <Text className={`text-sm font-medium ml-2 ${isReadOnly ? 'text-gray-500' : 'text-slate-900'}`}>
                                 {dueDate || 'Select Date'}
                             </Text>
                         </TouchableOpacity>
@@ -294,12 +300,12 @@ export default function EditTaskScreen() {
                     <View className="flex-1 ml-2">
                         <Text className="text-sm font-semibold text-slate-900 mb-2">Time</Text>
                         <TouchableOpacity
-                            className={`flex-row items-center border rounded-xl px-3.5 py-3 ${isSyncedEvent ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-200'}`}
-                            onPress={() => !isSyncedEvent && setShowTimePicker(true)}
-                            activeOpacity={isSyncedEvent ? 1 : 0.7}
+                            className={`flex-row items-center border rounded-xl px-3.5 py-3 ${isReadOnly ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-200'}`}
+                            onPress={() => !isReadOnly && setShowTimePicker(true)}
+                            activeOpacity={isReadOnly ? 1 : 0.7}
                         >
-                            <Clock size={18} color={isSyncedEvent ? "#9CA3AF" : "#1A237E"} />
-                            <Text className={`text-sm font-medium ml-2 ${isSyncedEvent ? 'text-gray-500' : 'text-slate-900'}`}>
+                            <Clock size={18} color={isReadOnly ? "#9CA3AF" : "#1A237E"} />
+                            <Text className={`text-sm font-medium ml-2 ${isReadOnly ? 'text-gray-500' : 'text-slate-900'}`}>
                                 {dueTime || 'Select Time'}
                             </Text>
                         </TouchableOpacity>
@@ -330,7 +336,7 @@ export default function EditTaskScreen() {
                 <View className="mt-4">
                     <Text className="text-sm font-semibold text-slate-900 mb-2">Description Notes</Text>
                     <TextInput
-                        className={`border rounded-xl px-4 py-3 text-base min-h-[110px] ${isSyncedEvent ? 'bg-gray-100 border-gray-200 text-gray-500' : 'bg-white border-gray-200 text-slate-900'}`}
+                        className={`border rounded-xl px-4 py-3 text-base min-h-[110px] ${isReadOnly ? 'bg-gray-100 border-gray-200 text-gray-500' : 'bg-white border-gray-200 text-slate-900'}`}
                         value={description}
                         onChangeText={setDescription}
                         multiline
@@ -338,12 +344,12 @@ export default function EditTaskScreen() {
                         textAlignVertical="top"
                         placeholder="Add assignment details..."
                         placeholderTextColor="#77767D"
-                        editable={!isSyncedEvent}
+                        editable={!isReadOnly}
                     />
                 </View>
 
                 {/* Save Changes Button (Hidden if Read-Only) */}
-                {!isSyncedEvent && (
+                {!isReadOnly && (
                     <Button
                         title={isSaving ? 'Saving...' : 'Save Changes'}
                         onPress={handleSaveChanges}
