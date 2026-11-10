@@ -10,12 +10,7 @@ function formatEventTitle(task) {
 }
 
 function generateDeterministicEventId(userId, gmailMessageId) {
-    // TEST ONLY: with EVENT_ID_SALT=random every call gets a fresh ID, so repeated timing
-    // runs follow the same path as a first-ever scan. Leave unset in production.
-    const salt = process.env.EVENT_ID_SALT === 'random'
-        ? crypto.randomBytes(4).toString('hex')
-        : (process.env.EVENT_ID_SALT || '');
-    return crypto.createHash('sha1').update(`${userId}:${gmailMessageId}${salt}`).digest('hex');
+    return crypto.createHash('sha1').update(`${userId}:${gmailMessageId}`).digest('hex');
 }
 
 /**
@@ -94,42 +89,31 @@ async function createEvent(auth, task, timezone) {
             calendarId: 'primary',
             resource: event
         });
-        console.log(`[cal] created new event ${res.data.id}`);
         return { eventId: res.data.id, htmlLink: res.data.htmlLink, alreadyExisted: false };
     } catch (error) {
-        if (error.response?.status !== 409) throw error;
+        // 409 means the deterministic ID already exists
+        if (error.response?.status === 409) {
+            let htmlLink = null;
+            try {
+                const existing = await calendar.events.get({ calendarId: 'primary', eventId: event.id });
 
-        // 409: the deterministic ID is already taken, so find out why
-        let existing;
-        try {
-            existing = await calendar.events.get({ calendarId: 'primary', eventId: event.id });
-        } catch (lookupError) {
-            const code = lookupError.response?.status;
-            if (code === 404 || code === 410) {
-                // ID is reserved but the event is permanently gone,
-                // so insert again and let Google generate a new ID
-                const { id, ...eventWithoutId } = event;
-                const res = await calendar.events.insert({
-                    calendarId: 'primary',
-                    resource: eventWithoutId
-                });
-                return { eventId: res.data.id, htmlLink: res.data.htmlLink, alreadyExisted: false };
+                // If the event was deleted/trashed, patch or re-insert it
+                if (existing.data.status === 'cancelled') {
+                    const patched = await calendar.events.patch({
+                        calendarId: 'primary',
+                        eventId: event.id,
+                        resource: { ...event, status: 'confirmed' }
+                    });
+                    return { eventId: patched.data.id, htmlLink: patched.data.htmlLink, alreadyExisted: false };
+                }
+
+                htmlLink = existing.data.htmlLink || null;
+            } catch (_) {
+                // Ignore fallback lookup errors
             }
-            throw lookupError; // network or server errors go back to retry()
+            return { eventId: event.id, htmlLink, alreadyExisted: true };
         }
-
-        // Deleted but still in the bin: bring it back
-        if (existing.data.status === 'cancelled') {
-            const patched = await calendar.events.patch({
-                calendarId: 'primary',
-                eventId: event.id,
-                resource: { ...event, status: 'confirmed' }
-            });
-            return { eventId: patched.data.id, htmlLink: patched.data.htmlLink, alreadyExisted: false };
-        }
-
-        // Really is on the calendar already
-        return { eventId: event.id, htmlLink: existing.data.htmlLink || null, alreadyExisted: true };
+        throw error;
     }
 }
 
@@ -141,12 +125,11 @@ async function syncTaskToCalendar(auth, task, timezone = syncConfig.defaultTimez
         // 1. Check if it already exists by fuzzy matching (just in case ID changed)
         const existing = await findMatchingEvent(auth, task, timezone);
         if (existing) {
-            console.log(`[cal] ${task.gmailMessageId}: matched an existing event by title -> ${existing.eventId}`);
             return {
                 status: 'already_exists',
                 calendarEventId: existing.eventId,
                 calendarEventLink: existing.htmlLink || null,
-                error: null,
+                error: null
             };
         }
 
@@ -158,7 +141,6 @@ async function syncTaskToCalendar(auth, task, timezone = syncConfig.defaultTimez
 
         // 409 Conflict means success via ID idempotency
         if (result.alreadyExisted) {
-            console.log(`[cal] 409 conflict for id ${event.id}`);
             return {
                 status: 'already_exists',
                 calendarEventId: result.eventId,
