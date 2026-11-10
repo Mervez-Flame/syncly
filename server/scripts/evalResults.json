@@ -1,0 +1,1494 @@
+{
+  "generatedAt": "2026-11-10T11:43:16.182Z",
+  "report": {
+    "matrix": {
+      "TP": 35,
+      "FN": 0,
+      "FP": 2,
+      "TN": 13
+    },
+    "lists": {
+      "TP": [
+        "TEST-001",
+        "TEST-002",
+        "TEST-003",
+        "TEST-004",
+        "TEST-005",
+        "TEST-006",
+        "TEST-007",
+        "TEST-008",
+        "TEST-009",
+        "TEST-010",
+        "TEST-011",
+        "TEST-012",
+        "TEST-013",
+        "TEST-014",
+        "TEST-015",
+        "TEST-016",
+        "TEST-017",
+        "TEST-018",
+        "TEST-019",
+        "TEST-020",
+        "TEST-021",
+        "TEST-022",
+        "TEST-023",
+        "TEST-024",
+        "TEST-025",
+        "TEST-026",
+        "TEST-027",
+        "TEST-028",
+        "TEST-029",
+        "TEST-030",
+        "TEST-031",
+        "TEST-032",
+        "TEST-033",
+        "TEST-034",
+        "TEST-035"
+      ],
+      "FN": [],
+      "FP": [
+        "TEST-038",
+        "TEST-050"
+      ],
+      "TN": [
+        "TEST-036",
+        "TEST-037",
+        "TEST-039",
+        "TEST-040",
+        "TEST-041",
+        "TEST-042",
+        "TEST-043",
+        "TEST-044",
+        "TEST-045",
+        "TEST-046",
+        "TEST-047",
+        "TEST-048",
+        "TEST-049"
+      ],
+      "excluded": []
+    },
+    "metrics": {
+      "precision": 0.9459459459459459,
+      "recall": 1,
+      "f1": 0.9722222222222222
+    },
+    "tier2": {
+      "tp": 35,
+      "title": {
+        "correct": 35,
+        "pendingReview": 0
+      },
+      "dueDate": {
+        "correct": 32,
+        "pendingReview": 0
+      },
+      "courseCode": {
+        "correct": 35,
+        "pendingReview": 0
+      },
+      "composite": 32,
+      "compositePending": 0,
+      "overallFieldAccuracy": 0.9714285714285714
+    }
+  },
+  "rows": [
+    {
+      "id": "TEST-001",
+      "subject": "Tomorrow Is the Deadline! Enrol Today",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c17e48c2df168",
+      "receivedAt": "2026-11-09T18:07:08.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (0% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-10 (date only)",
+          "got": "2026-11-10 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Complete semester enrolment",
+        "courseCode": "MIVA OPEN UNIVERSITY"
+      },
+      "expected": {
+        "title": "Tuition Payment and Course Registration",
+        "courseCode": "Miva Open University"
+      }
+    },
+    {
+      "id": "TEST-002",
+      "subject": "PHY201 Lab Report Requirement",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c17e37e9a9f11",
+      "receivedAt": "2026-11-09T18:07:04.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (75% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "wrong",
+          "note": "ambiguous relative date, matched the alternative reading [decided manually: wrong]",
+          "expected": "2026-11-13 16:00",
+          "got": "2026-11-20 16:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Optics Experiment Lab Report",
+        "courseCode": "PHY 201"
+      },
+      "expected": {
+        "title": "Optics Lab Report",
+        "courseCode": "PHY201"
+      }
+    },
+    {
+      "id": "TEST-003",
+      "subject": "CSC302 Data Structures Task",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c17e3cf65e97c",
+      "receivedAt": "2026-11-09T18:07:06.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (38% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-20 (date only)",
+          "got": "2026-11-20 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Implement binary search tree algorithm in Java",
+        "courseCode": "CSC 302"
+      },
+      "expected": {
+        "title": "Binary Search Tree Implementation",
+        "courseCode": "CSC302"
+      }
+    },
+    {
+      "id": "TEST-004",
+      "subject": "ENG204 Reading Summary",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c17e2c607bfa3",
+      "receivedAt": "2026-11-09T18:07:01.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (33% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-16 08:00",
+          "got": "2026-11-16 08:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "ENG204 Reading Summary",
+        "courseCode": "ENG 204"
+      },
+      "expected": {
+        "title": "Chapters 4-6 Reading Summary",
+        "courseCode": "ENG204"
+      }
+    },
+    {
+      "id": "TEST-005",
+      "subject": "New Assignment: GST102",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c17e231bee187",
+      "receivedAt": "2026-11-09T18:06:58.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": ""
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-25 (date only)",
+          "got": "2026-11-25 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Philosophy essay",
+        "courseCode": "GST 102"
+      },
+      "expected": {
+        "title": "Philosophy Essay",
+        "courseCode": "GST102"
+      }
+    },
+    {
+      "id": "TEST-006",
+      "subject": "ECO201 Microeconomics Problem Set",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2276a33b36fd",
+      "receivedAt": "2026-11-09T21:11:52.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (75% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-18 17:00",
+          "got": "2026-11-18 17:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Microeconomics Problem Set 3",
+        "courseCode": "ECO 201"
+      },
+      "expected": {
+        "title": "Problem Set 3",
+        "courseCode": "ECO201"
+      }
+    },
+    {
+      "id": "TEST-007",
+      "subject": "CHM101 - Weekly Homework",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226a05699d6e",
+      "receivedAt": "2026-11-09T21:11:00.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (0% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-14 23:59",
+          "got": "2026-11-14 23:59"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "CHM 101 Weekly Homework",
+        "courseCode": "CHM 101"
+      },
+      "expected": {
+        "title": "Titration Worksheet",
+        "courseCode": "CHM101"
+      }
+    },
+    {
+      "id": "TEST-008",
+      "subject": "Assignment 2 - Web Development",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226e71d4f1ef",
+      "receivedAt": "2026-11-09T21:11:19.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (0% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-10 23:59",
+          "got": "2026-11-10 23:59"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Assignment 2 - Web Development",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "Responsive CSS Grid Layout",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-009",
+      "subject": "SWE304 Software Requirements",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226fc368e532",
+      "receivedAt": "2026-11-09T21:11:21.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (75% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-30 (date only)",
+          "got": "2026-11-30 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Draft the SRS document",
+        "courseCode": "SWE 304"
+      },
+      "expected": {
+        "title": "SRS Document Draft",
+        "courseCode": "SWE304"
+      }
+    },
+    {
+      "id": "TEST-010",
+      "subject": "SOC101 Discussion Board",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "Also mentions peer replies due Friday (a second task). One task per email by design.",
+      "messageId": "1a1c227215ceba1e",
+      "receivedAt": "2026-11-09T21:11:33.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (25% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-11 12:00",
+          "got": "2026-11-11 12:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Post initial response to SOC101 discussion board",
+        "courseCode": "SOC 101"
+      },
+      "expected": {
+        "title": "Initial Forum Response",
+        "courseCode": "SOC101"
+      }
+    },
+    {
+      "id": "TEST-011",
+      "subject": "Database Design - CSC311",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c227549c6bd2d",
+      "receivedAt": "2026-11-09T21:11:47.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (38% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-22 (date only)",
+          "got": "2026-11-22 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Design the ERD for a hospital management system",
+        "courseCode": "CSC 311"
+      },
+      "expected": {
+        "title": "Hospital System ERD",
+        "courseCode": "CSC311"
+      }
+    },
+    {
+      "id": "TEST-012",
+      "subject": "MKT201 Marketing Pitch",
+      "category": "Assignment announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2270f864d80c",
+      "receivedAt": "2026-11-09T21:11:29.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (67% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-01 (date only)",
+          "got": "2026-12-01 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Upload 3-Minute Product Pitch Video",
+        "courseCode": "MKT 201"
+      },
+      "expected": {
+        "title": "Product Pitch Video Upload",
+        "courseCode": "MKT201"
+      }
+    },
+    {
+      "id": "TEST-013",
+      "subject": "Reminder: MTH101 Assignment 4",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2273d5fe030d",
+      "receivedAt": "2026-11-09T21:11:41.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (67% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-12 23:59",
+          "got": "2026-11-12 23:59"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "MTH101 Assignment 4",
+        "courseCode": "MTH 101"
+      },
+      "expected": {
+        "title": "Assignment 4",
+        "courseCode": "MTH101"
+      }
+    },
+    {
+      "id": "TEST-014",
+      "subject": "URGENT: Outstanding Lab Reports",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c445f2eeee537",
+      "receivedAt": "2026-11-10T07:04:30.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (60% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "wrong",
+          "note": "time 17:00, expected 14:00",
+          "expected": "2026-11-10 14:00",
+          "got": "2026-11-10 17:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Submit pendulum lab report",
+        "courseCode": "PHY 201"
+      },
+      "expected": {
+        "title": "Pendulum Lab Report Submission",
+        "courseCode": "PHY201"
+      }
+    },
+    {
+      "id": "TEST-015",
+      "subject": "Last Day to submit GST102 Essay",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2272f1c63cc6",
+      "receivedAt": "2026-11-09T21:11:37.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (50% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-09 17:00",
+          "got": "2026-11-09 17:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Submit GST102 History Essay",
+        "courseCode": "GST 102"
+      },
+      "expected": {
+        "title": "History Essay",
+        "courseCode": "GST102"
+      }
+    },
+    {
+      "id": "TEST-016",
+      "subject": "CSC401 Project Chapter 1 Reminder",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2275dd68236d",
+      "receivedAt": "2026-11-09T21:11:49.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (50% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-10 23:59",
+          "got": "2026-11-10 23:59"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Upload Project Chapter 1",
+        "courseCode": "CSC 401"
+      },
+      "expected": {
+        "title": "Upload Chapter 1 to Turnitin",
+        "courseCode": "CSC401"
+      }
+    },
+    {
+      "id": "TEST-017",
+      "subject": "Tuition Payment Deadline",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c22717ea0f819",
+      "receivedAt": "2026-11-09T21:11:31.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (50% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-25 (date only)",
+          "got": "2026-11-25 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Pay final semester tuition installment",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "Tuition Fee Final Installment",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-018",
+      "subject": "SWE304 Presentation Slides",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2270099bd22d",
+      "receivedAt": "2026-11-09T21:11:25.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (33% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-15 17:00",
+          "got": "2026-11-15 17:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Finalize and submit presentation slides",
+        "courseCode": "SWE 304"
+      },
+      "expected": {
+        "title": "Presentation Slides Submission",
+        "courseCode": "SWE304"
+      }
+    },
+    {
+      "id": "TEST-019",
+      "subject": "Library Services: Book Return",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226735cea5fe",
+      "receivedAt": "2026-11-09T21:10:49.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (50% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-11 (date only)",
+          "got": "2026-11-11 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Return borrowed textbooks",
+        "courseCode": "LIBRARY SERVICES"
+      },
+      "expected": {
+        "title": "Return Library Textbooks",
+        "courseCode": "Library Services"
+      }
+    },
+    {
+      "id": "TEST-020",
+      "subject": "IT Logbook Submission - Final Call",
+      "category": "Submission reminders",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c227090749296",
+      "receivedAt": "2026-11-09T21:11:27.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (13% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-18 12:00",
+          "got": "2026-11-18 12:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Submit completed and signed IT logbooks",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "IT Logbook Submission",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-021",
+      "subject": "ENG204: Midterm Quiz",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2274b0b76068",
+      "receivedAt": "2026-11-09T21:11:44.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (50% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-14 14:00",
+          "got": "2026-11-14 14:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "ENG 204 Midterm Quiz",
+        "courseCode": "ENG 204"
+      },
+      "expected": {
+        "title": "Midterm Quiz",
+        "courseCode": "ENG204"
+      }
+    },
+    {
+      "id": "TEST-022",
+      "subject": "CSC311 Database Systems Final Exam",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2268527e0785",
+      "receivedAt": "2026-11-09T21:10:53.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (14% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-12 09:00",
+          "got": "2026-12-12 09:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "CSC 311 Database Systems Final Exam",
+        "courseCode": "CSC 311"
+      },
+      "expected": {
+        "title": "Final Examination",
+        "courseCode": "CSC311"
+      }
+    },
+    {
+      "id": "TEST-023",
+      "subject": "Pop Quiz tomorrow - PHY201",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2267f36d80fa",
+      "receivedAt": "2026-11-09T21:10:51.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (67% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-10 10:00",
+          "got": "2026-11-10 10:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Thermodynamics quiz",
+        "courseCode": "PHY 201"
+      },
+      "expected": {
+        "title": "Thermodynamics Pop Quiz",
+        "courseCode": "PHY201"
+      }
+    },
+    {
+      "id": "TEST-024",
+      "subject": "MTH101 Test 2",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c225d0b7a60d5",
+      "receivedAt": "2026-11-09T21:10:08.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (40% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-20 13:30",
+          "got": "2026-11-20 13:30"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "MTH 101 Test 2",
+        "courseCode": "MTH 101"
+      },
+      "expected": {
+        "title": "Test 2 (Integration)",
+        "courseCode": "MTH101"
+      }
+    },
+    {
+      "id": "TEST-025",
+      "subject": "ECO201 Online Assessment",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c225ecf50ea27",
+      "receivedAt": "2026-11-09T21:10:13.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (60% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-28 08:00",
+          "got": "2026-11-28 08:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "ECO 201 Continuous Assessment Quiz",
+        "courseCode": "ECO 201"
+      },
+      "expected": {
+        "title": "Continuous Assessment Quiz",
+        "courseCode": "ECO201"
+      }
+    },
+    {
+      "id": "TEST-026",
+      "subject": "GST102 - Make up exam",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c2265cde6ad33",
+      "receivedAt": "2026-11-09T21:10:43.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (14% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-05 14:00",
+          "got": "2026-12-05 14:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "GST 102 makeup exam",
+        "courseCode": "GST 102"
+      },
+      "expected": {
+        "title": "Make up CBT Exam",
+        "courseCode": "GST102"
+      }
+    },
+    {
+      "id": "TEST-027",
+      "subject": "CHM101 Practical Exam",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c225f6ed0b8f9",
+      "receivedAt": "2026-11-09T21:10:16.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (20% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-08 10:00",
+          "got": "2026-12-08 10:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "CHM 101 Practical Exam",
+        "courseCode": "CHM 101"
+      },
+      "expected": {
+        "title": "Practical Examination",
+        "courseCode": "CHM101"
+      }
+    },
+    {
+      "id": "TEST-028",
+      "subject": "SWE304 Viva Voce",
+      "category": "Quiz/examination announcements",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226d1bf7f575",
+      "receivedAt": "2026-11-09T21:11:13.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (40% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-15 (date only)",
+          "got": "2026-12-15 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "SWE 304 Viva Voce",
+        "courseCode": "SWE 304"
+      },
+      "expected": {
+        "title": "Project Viva Voce",
+        "courseCode": "SWE304"
+      }
+    },
+    {
+      "id": "TEST-029",
+      "subject": "CSC401: Capstone Project Chapter 3",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226c9b511496",
+      "receivedAt": "2026-11-09T21:11:11.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (80% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-12 16:00",
+          "got": "2026-11-12 16:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Submit Chapter 3 methodology draft",
+        "courseCode": "CSC 401"
+      },
+      "expected": {
+        "title": "Methodology Draft (Chapter 3)",
+        "courseCode": "CSC401"
+      }
+    },
+    {
+      "id": "TEST-030",
+      "subject": "Final Year Project Defense",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c225c64d31345",
+      "receivedAt": "2026-11-09T21:10:05.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (43% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-30 (date only)",
+          "got": "2026-11-30 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Submit clearance forms for December defense",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "Defense Clearance Forms Submission",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-031",
+      "subject": "SWE304 Final Codebase",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c22697994f54f",
+      "receivedAt": "2026-11-09T21:10:55.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (29% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-10 23:59",
+          "got": "2026-12-10 23:59"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Submit SWE 304 final codebase",
+        "courseCode": "SWE 304"
+      },
+      "expected": {
+        "title": "Final Codebase & Documentation Push",
+        "courseCode": "SWE304"
+      }
+    },
+    {
+      "id": "TEST-032",
+      "subject": "Research Proposal Deadline",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c225c064265c7",
+      "receivedAt": "2026-11-09T21:10:03.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (75% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-11-18 (date only)",
+          "got": "2026-11-18 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Upload approved research proposal",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "Research Proposal Upload",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-033",
+      "subject": "MKT201 Group Campaign Project",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c226e053bbdb0",
+      "receivedAt": "2026-11-09T21:11:17.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (75% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-05 (date only)",
+          "got": "2026-12-05 (date only)"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Final Marketing Campaign Portfolio",
+        "courseCode": "MKT 201"
+      },
+      "expected": {
+        "title": "Marketing Campaign Portfolio",
+        "courseCode": "MKT201"
+      }
+    },
+    {
+      "id": "TEST-034",
+      "subject": "Capstone Poster Presentation",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c22738ef2f5bf",
+      "receivedAt": "2026-11-09T21:11:39.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (29% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "ok",
+          "note": "",
+          "expected": "2026-12-02 16:00",
+          "got": "2026-12-02 16:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Print and submit A1 academic poster",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "A1 Poster Submission",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-035",
+      "subject": "Faculty Seminar Registration",
+      "category": "Project deadlines",
+      "isTask": true,
+      "note": "",
+      "messageId": "1a1c225bbd1e3582",
+      "receivedAt": "2026-11-09T21:10:02.000Z",
+      "outcome": "synced",
+      "detection": "extracted",
+      "fields": {
+        "title": {
+          "verdict": "ok",
+          "note": "wording differs (50% word overlap), decide if the meaning is the same [decided manually: ok]"
+        },
+        "dueDate": {
+          "verdict": "wrong",
+          "note": "date differs",
+          "expected": "2026-11-20 23:59",
+          "got": "2026-11-20 00:00"
+        },
+        "courseCode": {
+          "verdict": "ok",
+          "note": ""
+        }
+      },
+      "system": {
+        "title": "Complete mandatory seminar registration",
+        "courseCode": null
+      },
+      "expected": {
+        "title": "Seminar Registration",
+        "courseCode": null
+      }
+    },
+    {
+      "id": "TEST-036",
+      "subject": "Invitation: Join the 2nd NSDABIE International Conference",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c226a9c78f11b",
+      "receivedAt": "2026-11-09T21:11:02.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-037",
+      "subject": "Library Hours Extended",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c225d9a972989",
+      "receivedAt": "2026-11-09T21:10:10.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-038",
+      "subject": "CSC311 Lecture Notes",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c226b96e08742",
+      "receivedAt": "2026-11-09T21:11:07.000Z",
+      "outcome": "unscheduled",
+      "detection": "extracted",
+      "system": {
+        "title": "Review Week 5 Lecture Slides",
+        "courseCode": "CSC 311"
+      }
+    },
+    {
+      "id": "TEST-039",
+      "subject": "Campus Wi-Fi Maintenance",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c2269bfe6a48e",
+      "receivedAt": "2026-11-09T21:10:58.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-040",
+      "subject": "Student Union Newsletter",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c226169904e11",
+      "receivedAt": "2026-11-09T21:10:24.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-041",
+      "subject": "MTH101 Syllabus Correction",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c2261cab45c6a",
+      "receivedAt": "2026-11-09T21:10:26.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-042",
+      "subject": "Join the Computer Science Club",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c226261aa00fb",
+      "receivedAt": "2026-11-09T21:10:28.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-043",
+      "subject": "Dean's List Announcement",
+      "category": "General academic/non-task emails",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c225ff5d5d64e",
+      "receivedAt": "2026-11-09T21:10:18.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-044",
+      "subject": "History of Computing",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c2262d55ad68d",
+      "receivedAt": "2026-11-09T21:10:31.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-045",
+      "subject": "Resume Workshop Invitation",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c2260b3635cfb",
+      "receivedAt": "2026-11-09T21:10:22.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-046",
+      "subject": "Guest Lecture: AI in Healthcare",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c225b21337dd7",
+      "receivedAt": "2026-11-09T21:10:00.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-047",
+      "subject": "CSC401 Class Rescheduled",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c226c36062098",
+      "receivedAt": "2026-11-09T21:11:09.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-048",
+      "subject": "Thanksgiving Break Dates",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c226b21a6a4a9",
+      "receivedAt": "2026-11-09T21:11:05.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-049",
+      "subject": "Football Tryouts",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c225a1071be37",
+      "receivedAt": "2026-11-09T21:09:54.000Z",
+      "outcome": "no_task",
+      "detection": "no_task"
+    },
+    {
+      "id": "TEST-050",
+      "subject": "Exam Timetable Released",
+      "category": "Emails containing dates that are not deadlines",
+      "isTask": false,
+      "note": "",
+      "messageId": "1a1c225a91ecbdbc",
+      "receivedAt": "2026-11-09T21:09:57.000Z",
+      "outcome": "unscheduled",
+      "detection": "extracted",
+      "system": {
+        "title": "Final exams",
+        "courseCode": null
+      }
+    }
+  ]
+}
