@@ -94,6 +94,7 @@ async function createEvent(auth, task, timezone) {
             calendarId: 'primary',
             resource: event
         });
+        console.log(`[cal] created new event ${res.data.id}`);
         return { eventId: res.data.id, htmlLink: res.data.htmlLink, alreadyExisted: false };
     } catch (error) {
         if (error.response?.status !== 409) throw error;
@@ -140,11 +141,12 @@ async function syncTaskToCalendar(auth, task, timezone = syncConfig.defaultTimez
         // 1. Check if it already exists by fuzzy matching (just in case ID changed)
         const existing = await findMatchingEvent(auth, task, timezone);
         if (existing) {
+            console.log(`[cal] ${task.gmailMessageId}: matched an existing event by title -> ${existing.eventId}`);
             return {
                 status: 'already_exists',
                 calendarEventId: existing.eventId,
                 calendarEventLink: existing.htmlLink || null,
-                error: null
+                error: null,
             };
         }
 
@@ -156,6 +158,7 @@ async function syncTaskToCalendar(auth, task, timezone = syncConfig.defaultTimez
 
         // 409 Conflict means success via ID idempotency
         if (result.alreadyExisted) {
+            console.log(`[cal] 409 conflict for id ${event.id}`);
             return {
                 status: 'already_exists',
                 calendarEventId: result.eventId,
